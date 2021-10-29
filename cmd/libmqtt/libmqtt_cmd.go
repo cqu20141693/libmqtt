@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
+	"github.com/goiiot/libmqtt/cmd/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -77,13 +78,11 @@ func execCmd(params []string) {
 	ok := false
 	switch cmd {
 	case "c", "conn":
-		client, err := execConn(args)
+		ok = handleConn(params, args, ok)
+	case "m-conn":
+		infos, err := getConnInfo(args)
 		if err == nil {
-			counter := atomic.AddInt64(&idGenerator, 1)
-			clientId := strconv.FormatInt(counter, 10)
-			clientMap[clientId] = client
-			cmdMap[clientId] = params
-			ok = true
+			ok = handleConn(params, infos, ok)
 		}
 	case "p", "pub":
 		if client, exit := clientMap[args[len(args)-1]]; exit {
@@ -130,6 +129,29 @@ func execCmd(params []string) {
 	if !ok {
 		usage()
 	}
+}
+
+func handleConn(params []string, args []string, ok bool) bool {
+	client, err := execConn(args)
+	if err == nil {
+		counter := atomic.AddInt64(&idGenerator, 1)
+		clientId := strconv.FormatInt(counter, 10)
+		clientMap[clientId] = client
+		cmdMap[clientId] = params
+		ok = true
+	}
+	return ok
+}
+
+func getConnInfo(args []string) (infos []string, err error) {
+	if len(args) != 3 {
+		return nil, err
+	}
+	mqttInfo, err := http.GetMirrorMqttInfo(args[1])
+	if err != nil {
+		return nil, err
+	}
+	return []string{args[0], mqttInfo.ClientIdentifier, mqttInfo.Username, "M:" + mqttInfo.Password, args[2]}, nil
 }
 
 func lookup() bool {
