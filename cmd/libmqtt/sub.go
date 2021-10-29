@@ -17,15 +17,16 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	mqtt "github.com/goiiot/libmqtt"
 )
 
-func execSub(args []string) bool {
+func execSub(client *mqtt.AsyncClient, args []string) bool {
 	if client == nil {
-		println("please connect to server first")
+		fmt.Println("please connect to server first")
 		return true
 	}
 
@@ -50,20 +51,20 @@ func execSub(args []string) bool {
 	return true
 }
 
-func execUnSub(args []string) bool {
+func execUnSub(client *mqtt.AsyncClient, args []string) bool {
 	if client == nil {
-		println("please connect to server first")
+		fmt.Println("please connect to server first")
 		return true
 	}
 
-	client.UnSubscribe(args...)
+	client.Unsubscribe(args...)
 	return true
 }
 
 func subUsage() {
-	println(`s, sub [topic,qos] [...] - subscribe topic(s)`)
+	fmt.Println(`s, sub [topic,qos] [...] clientId - subscribe topic(s)`)
 }
 
 func unSubUsage() {
-	println(`u, unsub [topic] [...] - unsubscribe topic(s)`)
+	fmt.Println(`u, unsub [topic] [...] clientId - unsubscribe topic(s)`)
 }

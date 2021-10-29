@@ -17,22 +17,23 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
 	mqtt "github.com/goiiot/libmqtt"
 )
 
-func execPub(args []string) bool {
+func execPub(client *mqtt.AsyncClient, messages []string) bool {
 	if client == nil {
 		println("please connect to server first")
 		return true
 	}
 
 	pubs := make([]*mqtt.PublishPacket, 0)
-	for _, v := range args {
-		pubStr := strings.Split(v, ",")
-		if len(pubStr) != 3 {
+	for _, v := range messages {
+		pubStr := strings.Split(v, "#")
+		if len(pubStr) != 4 {
 			pubUsage()
 			return true
 		}
@@ -41,10 +42,15 @@ func execPub(args []string) bool {
 			pubUsage()
 			return false
 		}
+		bytes, err := getBytes(pubStr[2], pubStr[3])
+		if err != nil {
+			fmt.Printf("topic=%v qos=%v type=%v data=%v encode error \n", pubStr[0], pubStr[1], pubStr[2], pubStr[3])
+			continue
+		}
 		pubs = append(pubs, &mqtt.PublishPacket{
 			TopicName: pubStr[0],
 			Qos:       mqtt.QosLevel(qos),
-			Payload:   []byte(pubStr[2]),
+			Payload:   bytes,
 		})
 	}
 	client.Publish(pubs...)
@@ -52,5 +58,5 @@ func execPub(args []string) bool {
 }
 
 func pubUsage() {
-	println(`p, pub [topic,qos,message] [...] - publish topic message(s)`)
+	fmt.Println(`p, pub [topic,qos,encodeType,message] [...] clientId - publish topic message(s)`)
 }

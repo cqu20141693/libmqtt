@@ -19,21 +19,23 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
+	mqtt "github.com/goiiot/libmqtt"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
-
-	mqtt "github.com/goiiot/libmqtt"
+	"sync/atomic"
 )
 
 const (
 	lineStart = "> "
 )
 
-var (
-	client mqtt.Client
-)
+var idGenerator int64
+var clientMap = make(map[string]*mqtt.AsyncClient, 8)
+var cmdMap = make(map[string][]string, 8)
 
 func main() {
 	flag.Parse()
@@ -50,35 +52,77 @@ func main() {
 	// handle user input
 	wg.Add(1)
 	go func() {
-		print(lineStart)
+		fmt.Printf(lineStart)
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
-			if scanner.Text() != "" {
-				args := strings.Split(scanner.Text(), " ")
+			text := scanner.Text()
+			if text != "" {
+				args := strings.Split(text, " ")
+				if text == "quit" {
+					execCmd(args)
+					break
+				}
 				execCmd(args)
 			}
-			print(lineStart)
+			fmt.Printf(lineStart)
 		}
 		wg.Done()
 	}()
 	wg.Wait()
 }
 
-func execCmd(args []string) {
-	cmd := strings.ToLower(args[0])
-	args = args[1:]
+func execCmd(params []string) {
+	cmd := strings.ToLower(params[0])
+	args := params[1:]
 	ok := false
 	switch cmd {
 	case "c", "conn":
-		ok = execConn(args)
+		client, err := execConn(args)
+		if err == nil {
+			counter := atomic.AddInt64(&idGenerator, 1)
+			clientId := strconv.FormatInt(counter, 10)
+			clientMap[clientId] = client
+			cmdMap[clientId] = params
+			ok = true
+		}
 	case "p", "pub":
-		ok = execPub(args)
+		if client, exit := clientMap[args[len(args)-1]]; exit {
+			ok = execPub(client, args[:len(args)-1])
+		} else {
+			print("clientId not exist,please use the lookup command to view the client")
+		}
 	case "s", "sub":
-		ok = execSub(args)
+		if client, exit := clientMap[args[len(args)-1]]; exit {
+			ok = execSub(client, args[:len(args)-1])
+		} else {
+			print("clientId not exist,please use the lookup command to view the client")
+		}
 	case "u", "unsub":
-		ok = execUnSub(args)
+		if client, exit := clientMap[args[len(args)-1]]; exit {
+			ok = execUnSub(client, args[:len(args)-1])
+		} else {
+			print("clientId not exist,please use the lookup command to view the client")
+		}
 	case "q", "exit":
-		ok = execDisConn(args)
+		for _, client := range clientMap {
+			client.Destroy(false)
+			delete(clientMap, args[0])
+			delete(cmdMap, args[0])
+			ok = true
+		}
+	case "d", "disconnect":
+		if client, exit := clientMap[args[len(args)-1]]; exit {
+			force := !(len(args) > 0 && args[1] != "force")
+			client.Destroy(force)
+			delete(clientMap, args[0])
+			delete(cmdMap, args[0])
+			ok = true
+		} else {
+			print("clientId not exist,please use the lookup command to view the client")
+		}
+	case "l", "lookup":
+		ok = lookup()
+	//ok = execDisConn(args)
 	case "?", "h", "help":
 		ok = usage()
 	}
@@ -86,6 +130,13 @@ func execCmd(args []string) {
 	if !ok {
 		usage()
 	}
+}
+
+func lookup() bool {
+	for s, cmd := range cmdMap {
+		fmt.Printf("clientId=%v cmd=%v \n", s, cmd)
+	}
+	return true
 }
 
 func usage() bool {

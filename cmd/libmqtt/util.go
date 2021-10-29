@@ -17,58 +17,59 @@
 package main
 
 import (
+	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
 )
 
 func connHandler(client mqtt.Client, server string, code byte, err error) {
 	if err != nil {
-		println("\nconnect to server error:", err)
+		fmt.Println("\nconnect to server error:", err)
 	} else if code != mqtt.CodeSuccess {
-		println("\nconnection rejected by server, code:", code)
+		fmt.Println("\nconnection rejected by server, code:", code)
 	} else {
-		println("\nconnected to server")
+		fmt.Println("\nconnected to server")
 	}
-	print(lineStart)
+	fmt.Printf(lineStart)
 }
 
 func pubHandler(client mqtt.Client, topic string, err error) {
 	if err != nil {
-		println("\npub", topic, "failed, error =", err)
+		fmt.Println("\npub", topic, "failed, error =", err)
 	} else {
-		println("\npub", topic, "success")
+		fmt.Println("\npub", topic, "success")
 	}
-	print(lineStart)
+	fmt.Printf(lineStart)
 }
 
 func subHandler(client mqtt.Client, topics []*mqtt.Topic, err error) {
 	if err != nil {
-		println("\nsub", topics, "failed, error =", err)
+		fmt.Println("\nsub", topics, "failed, error =", err)
 	} else {
-		println("\nsub", topics, "success")
+		fmt.Println("\nsub", topics, "success")
 	}
-	print(lineStart)
+	fmt.Printf(lineStart)
 }
 
 func unSubHandler(client mqtt.Client, topics []string, err error) {
 	if err != nil {
-		println("\nunsub", topics, "failed, error =", err)
+		fmt.Println("\nunsub", topics, "failed, error =", err)
 	} else {
-		println("\nunsub", topics, "success")
+		fmt.Println("\nunsub", topics, "success")
 	}
-	print(lineStart)
+	fmt.Printf(lineStart)
 }
 
 func netHandler(client mqtt.Client, server string, err error) {
-	println("\nconnection to server, error:", err)
-	print(lineStart)
+	fmt.Println("\nconnection to server, error:", err)
+	fmt.Printf(lineStart)
 }
 
 func topicHandler(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
-	println("\n[MSG] topic:", topic, "msg:", string(msg), "qos:", qos)
-	print(lineStart)
+	fmt.Println("\n[MSG] topic:", topic, "msg:", string(msg), "qos:", qos)
+	fmt.Printf(lineStart)
 }
 
 func invalidQos() {
-	println("\nqos level should either be 0, 1 or 2")
-	print(lineStart)
+	fmt.Println("\nqos level should either be 0, 1 or 2")
+	fmt.Printf(lineStart)
 }

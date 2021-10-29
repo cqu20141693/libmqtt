@@ -36,6 +36,7 @@ func (c *AsyncClient) ConnectServer(server string, connOptions ...Option) error 
 		}
 	}
 
+	c.addWorker(c.handleTopicMsg, c.handleMsg)
 	c.addWorker(func() { options.connect(c, server, options.protoVersion, options.firstDelay) })
 
 	return nil

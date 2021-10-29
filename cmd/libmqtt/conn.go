@@ -17,6 +17,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -24,17 +25,17 @@ import (
 	mqtt "github.com/goiiot/libmqtt"
 )
 
-func execConn(args []string) bool {
-	if len(args) < 1 {
-		return false
+func execConn(args []string) (client mqtt.Client, err error) {
+	if len(args) < 5 {
+		return nil, err
 	}
 
 	if len(strings.Split(args[0], ":")) != 2 {
-		return false
+		return nil, err
 	}
 
 	options := make([]mqtt.Option, 0)
-	if len(args) == 2 {
+	if len(args) == 6 {
 		opts := strings.Split(args[1], ",")
 		var willQos mqtt.QosLevel
 		var sslSkipVerify, ssl, will, willRetain bool
@@ -43,7 +44,7 @@ func execConn(args []string) bool {
 			kv := strings.Split(v, "=")
 			if len(kv) != 2 {
 				println(v, "option should be key=value")
-				return true
+				return nil, err
 			}
 
 			switch kv[0] {
@@ -69,7 +70,7 @@ func execConn(args []string) bool {
 				qos, err := strconv.Atoi(kv[1])
 				if err != nil || qos > 2 {
 					invalidQos()
-					return true
+					return nil, err
 				}
 				willQos = mqtt.QosLevel(qos)
 			case "will_msg":
@@ -85,12 +86,19 @@ func execConn(args []string) bool {
 			options = append(options, mqtt.WithWill(willTopic, willQos, willRetain, []byte(willMsg)))
 		}
 	}
-	options = append(options, mqtt.WithServer(args[0]))
-	newClient(options)
-	return true
+	options = append(options, mqtt.WithClientID(args[1]))
+	options = append(options, mqtt.WithIdentity(args[2], args[3]))
+	keepAlive, err := strconv.Atoi(args[4])
+	if err != nil {
+		return nil, err
+	}
+	options = append(options, mqtt.WithKeepalive(uint16(keepAlive), 1.2))
+	options = append(options, mqtt.WithClientID(args[1]))
+	return newClient(options, args[0])
 }
 
 func execDisConn(args []string) bool {
+	var client mqtt.Client
 	if client != nil {
 		client.Destroy(!(len(args) > 0 && args[1] != "force"))
 	}
@@ -100,10 +108,7 @@ func execDisConn(args []string) bool {
 	return true
 }
 
-func newClient(options []mqtt.Option) {
-	if client != nil {
-		client.Destroy(true)
-	}
+func newClient(options []mqtt.Option, server string) (client mqtt.Client, err error) {
 
 	allOpts := append([]mqtt.Option{
 		mqtt.WithPubHandleFunc(pubHandler),
@@ -111,14 +116,30 @@ func newClient(options []mqtt.Option) {
 		mqtt.WithUnsubHandleFunc(unSubHandler),
 		mqtt.WithNetHandleFunc(netHandler),
 		mqtt.WithSubHandleFunc(subHandler),
+		mqtt.WithRouter(mqtt.NewRegexRouter()),
 	}, options...)
 
-	var err error
 	client, err = mqtt.NewClient(allOpts...)
 	if err != nil {
 		println(err.Error())
-		return
+		return nil, err
 	}
+	client.HandleTopic(".*", func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
+		fmt.Printf("\n[%v] message: %v qos:%v \n", topic, string(msg), qos)
+		fmt.Printf(lineStart)
+	})
+	client.HandleTopic("sys/cmd/*", func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
+		split := strings.Split(topic, "/")
+		cmdTag := split[len(split)-1]
+		completeTopic := strings.Join([]string{"sys", "cmdSync", cmdTag, "complete"}, "/")
+		pubMsg := CreateSinglePubMsg(0, completeTopic, "")
+		client.Publish(pubMsg...)
+	})
+	err = client.ConnectServer(server, allOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
 
 func connUsage() {
