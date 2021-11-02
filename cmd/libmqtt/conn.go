@@ -93,7 +93,7 @@ func execConn(args []string) (client mqtt.Client, err error) {
 		return nil, err
 	}
 	options = append(options, mqtt.WithKeepalive(uint16(keepAlive), 1.2))
-	options = append(options, mqtt.WithClientID(args[1]))
+	options = append(options, mqtt.WithVersion(mqtt.V311, false))
 	return newClient(options, args[0])
 }
 
@@ -143,7 +143,7 @@ func newClient(options []mqtt.Option, server string) (client mqtt.Client, err er
 }
 
 func connUsage() {
-	println(`c, conn [server:port] [OPTIONS] - connect to server
+	fmt.Println(`c, conn [server:port] [OPTIONS] - connect to server
     [OPTIONS] is a key=value config list separated by comma, valid keys:
       clean={y|n},ssl={y|n},ssl_cert={cert_path},
       ssl_key={key_path},ssl_ca={ca},

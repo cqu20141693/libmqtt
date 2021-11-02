@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/goiiot/libmqtt/cmd/json"
 	"strings"
@@ -20,9 +19,7 @@ func GetMirrorMqttInfo(url string) (info *json.MqttInfo, e error) {
 	if err != nil {
 		return nil, err
 	}
-	jsonStr := fmt.Sprintf(string(response.Body()))
-	fmt.Println(jsonStr)
-	authResult, err := json.JsonToMqttAuthResult([]byte(jsonStr))
+	authResult, err := json.JsonToMqttAuthResult(response.Body())
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +36,6 @@ func GetSubMqttInfo(url string, devices []string) (info *json.MqttInfo, e error)
 	if err != nil {
 		return
 	}
-	fmt.Println(string(post.Body()))
 	authResult, err := json.JsonToMqttAuthResult(post.Body())
 	if err != nil {
 		return nil, err

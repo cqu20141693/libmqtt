@@ -77,12 +77,22 @@ func execCmd(params []string) {
 	args := params[1:]
 	ok := false
 	switch cmd {
+	// support 网关和普通设备连接，支持app订阅连接
 	case "c", "conn":
 		ok = handleConn(params, args, ok)
-	case "m-conn":
-		infos, err := getConnInfo(args)
+	case "m-c", "m-conn":
+		infos, err := getMirrorConnInfo(args)
 		if err == nil {
 			ok = handleConn(params, infos, ok)
+		} else {
+			fmt.Println(`m-conn,m-c server getMirrorInfoAPI keepalive  - Mirror login`)
+		}
+	case "sg-c", "sg-conn":
+		infos, err := getSubGroupConnInfo(args)
+		if err == nil {
+			ok = handleConn(params, infos, ok)
+		} else {
+			fmt.Println(`sg-conn,sg-c server getSubGroupInfoAPI [device1,device2] keepalive  - subGroup login`)
 		}
 	case "p", "pub":
 		if client, exit := clientMap[args[len(args)-1]]; exit {
@@ -110,8 +120,8 @@ func execCmd(params []string) {
 			ok = true
 		}
 	case "d", "disconnect":
-		if client, exit := clientMap[args[len(args)-1]]; exit {
-			force := !(len(args) > 0 && args[1] != "force")
+		if client, exit := clientMap[args[0]]; exit {
+			force := len(args) == 2 && args[1] == "force"
 			client.Destroy(force)
 			delete(clientMap, args[0])
 			delete(cmdMap, args[0])
@@ -143,7 +153,19 @@ func handleConn(params []string, args []string, ok bool) bool {
 	return ok
 }
 
-func getConnInfo(args []string) (infos []string, err error) {
+func getSubGroupConnInfo(args []string) (infos []string, err error) {
+	if len(args) != 4 {
+		return nil, err
+	}
+	devices := strings.Split(args[2], ",")
+	mqttInfo, err := http.GetSubMqttInfo(args[1], devices)
+	if err != nil {
+		return nil, err
+	}
+	// server,clientId,username,pwd,keepalive
+	return []string{args[0], mqttInfo.ClientIdentifier, mqttInfo.Username, "SG:" + mqttInfo.Password, args[3]}, nil
+}
+func getMirrorConnInfo(args []string) (infos []string, err error) {
 	if len(args) != 3 {
 		return nil, err
 	}
@@ -151,6 +173,7 @@ func getConnInfo(args []string) (infos []string, err error) {
 	if err != nil {
 		return nil, err
 	}
+	// server,clientId,username,pwd,keepalive
 	return []string{args[0], mqttInfo.ClientIdentifier, mqttInfo.Username, "M:" + mqttInfo.Password, args[2]}, nil
 }
 

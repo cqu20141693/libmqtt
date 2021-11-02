@@ -101,7 +101,7 @@ func (c connectOptions) connect(
 
 	parent.log.v("NET connectOptions.connect()")
 	defer parent.connectedServers.Delete(server)
-
+	// 建立网络连接，tls 支持
 	conn, err = c.newConnection(parent.ctx, server, c.dialTimeout, c.tlsConfig)
 	if err != nil {
 		parent.log.e("CLI connect server failed, err =", err, ", server =", server)
@@ -139,10 +139,12 @@ func (c connectOptions) connect(
 		connImpl.ctx, connImpl.exit = context.WithCancel(parent.ctx)
 		connImpl.stopSig = connImpl.ctx.Done()
 
+		// 设置网络处理
 		parent.addWorker(connImpl.handleNetRecv)
 
 		connPkt := c.connPacket.clone()
 		connPkt.ProtoVersion = version
+		// 协议连接报文
 		if err := connImpl.sendRaw(connPkt); err != nil {
 			if c.autoReconnect && !parent.isClosing() {
 				goto reconnect
@@ -151,6 +153,7 @@ func (c connectOptions) connect(
 		}
 
 		select {
+		// 连接后 读取报文
 		case pkt, more := <-connImpl.netRecvC:
 			if !more {
 				if c.connHandler != nil {
@@ -209,6 +212,8 @@ func (c connectOptions) connect(
 		parent.addWorker(connImpl.handleSend)
 
 		// start mqtt logic
+		// 开启keepAlive,
+		// 开启消息分发和处理
 		connImpl.logic()
 
 		if parent.isClosing() || connImpl.parentExiting() {
