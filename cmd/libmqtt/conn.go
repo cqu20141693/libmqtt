@@ -25,7 +25,7 @@ import (
 	mqtt "github.com/goiiot/libmqtt"
 )
 
-func execConn(args []string) (client mqtt.Client, err error) {
+func execConn(args []string, version mqtt.ProtoVersion) (client mqtt.Client, err error) {
 	if len(args) < 5 {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func execConn(args []string) (client mqtt.Client, err error) {
 		return nil, err
 	}
 	options = append(options, mqtt.WithKeepalive(uint16(keepAlive), 1.2))
-	options = append(options, mqtt.WithVersion(mqtt.V311, false))
+	options = append(options, mqtt.WithVersion(version, false))
 	return newClient(options, args[0])
 }
 
@@ -143,11 +143,5 @@ func newClient(options []mqtt.Option, server string) (client mqtt.Client, err er
 }
 
 func connUsage() {
-	fmt.Println(`c, conn [server:port] [OPTIONS] - connect to server
-    [OPTIONS] is a key=value config list separated by comma, valid keys:
-      clean={y|n},ssl={y|n},ssl_cert={cert_path},
-      ssl_key={key_path},ssl_ca={ca},
-      ssl_server={server_name},ssl_skip_verify={y|n},
-      will={y|n},will_topic={topic_name},will_qos={qos},
-      will_msg={msg},will_retain={y|n}`)
+	fmt.Println(`c, conn [server:port] sn gk pwd keepalive - connect to server`)
 }

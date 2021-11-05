@@ -79,21 +79,24 @@ func execCmd(params []string) {
 	switch cmd {
 	// support 网关和普通设备连接，支持app订阅连接
 	case "c", "conn":
-		ok = handleConn(params, args, ok)
+		ok = handleConn(params, args, mqtt.V311)
 	case "m-c", "m-conn":
 		infos, err := getMirrorConnInfo(args)
 		if err == nil {
-			ok = handleConn(params, infos, ok)
+			ok = handleConn(params, infos, mqtt.V311)
 		} else {
 			fmt.Println(`m-conn,m-c server getMirrorInfoAPI keepalive  - Mirror login`)
 		}
 	case "sg-c", "sg-conn":
 		infos, err := getSubGroupConnInfo(args)
 		if err == nil {
-			ok = handleConn(params, infos, ok)
+			ok = handleConn(params, infos, mqtt.V311)
 		} else {
 			fmt.Println(`sg-conn,sg-c server getSubGroupInfoAPI [device1,device2] keepalive  - subGroup login`)
 		}
+		// support 网关和普通设备连接，支持app订阅连接
+	case "conn5":
+		ok = handleConn(params, args, mqtt.V5)
 	case "p", "pub":
 		if client, exit := clientMap[args[len(args)-1]]; exit {
 			ok = execPub(client, args[:len(args)-1])
@@ -106,11 +109,13 @@ func execCmd(params []string) {
 		} else {
 			print("clientId not exist,please use the lookup command to view the client")
 		}
-	case "u", "unsub":
-		if client, exit := clientMap[args[len(args)-1]]; exit {
-			ok = execUnSub(client, args[:len(args)-1])
-		} else {
-			print("clientId not exist,please use the lookup command to view the client")
+	case "un", "unsub":
+		if len(args) == 2 {
+			if client, exit := clientMap[args[len(args)-1]]; exit {
+				ok = execUnSub(client, args[:len(args)-1])
+			} else {
+				print("clientId not exist,please use the lookup command to view the client")
+			}
 		}
 	case "q", "exit":
 		for _, client := range clientMap {
@@ -120,14 +125,16 @@ func execCmd(params []string) {
 			ok = true
 		}
 	case "d", "disconnect":
-		if client, exit := clientMap[args[0]]; exit {
-			force := len(args) == 2 && args[1] == "force"
-			client.Destroy(force)
-			delete(clientMap, args[0])
-			delete(cmdMap, args[0])
-			ok = true
-		} else {
-			print("clientId not exist,please use the lookup command to view the client")
+		if len(args) > 1 {
+			if client, exit := clientMap[args[0]]; exit {
+				force := len(args) == 2 && args[1] == "force"
+				client.Destroy(force)
+				delete(clientMap, args[0])
+				delete(cmdMap, args[0])
+				ok = true
+			} else {
+				print("clientId not exist,please use the lookup command to view the client")
+			}
 		}
 	case "l", "lookup":
 		ok = lookup()
@@ -141,8 +148,8 @@ func execCmd(params []string) {
 	}
 }
 
-func handleConn(params []string, args []string, ok bool) bool {
-	client, err := execConn(args)
+func handleConn(params []string, args []string, version mqtt.ProtoVersion) (ok bool) {
+	client, err := execConn(args, version)
 	if err == nil {
 		counter := atomic.AddInt64(&idGenerator, 1)
 		clientId := strconv.FormatInt(counter, 10)
@@ -150,7 +157,7 @@ func handleConn(params []string, args []string, ok bool) bool {
 		cmdMap[clientId] = params
 		ok = true
 	}
-	return ok
+	return
 }
 
 func getSubGroupConnInfo(args []string) (infos []string, err error) {
@@ -185,16 +192,14 @@ func lookup() bool {
 }
 
 func usage() bool {
-	print("Usage\n\n")
-	print("  ")
+	fmt.Println("Usage:")
+
 	connUsage()
-	print("  ")
 	pubUsage()
-	print("  ")
 	subUsage()
-	print("  ")
 	unSubUsage()
-	println(`  q, exit [force] - disconnect and exit`)
-	println(`  h, help - print this help message`)
+	fmt.Println("d clientId [force] - disconnect client")
+	fmt.Println(`q, exit - exit CLI`)
+	fmt.Println(`h, help - print this help message`)
 	return true
 }
