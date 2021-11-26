@@ -19,6 +19,7 @@ package main
 import (
 	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
+	"github.com/goiiot/libmqtt/cmd/domain"
 )
 
 func connHandler(client mqtt.Client, server string, code byte, err error) {
@@ -29,7 +30,7 @@ func connHandler(client mqtt.Client, server string, code byte, err error) {
 	} else {
 		fmt.Println("\nconnected to server")
 	}
-	fmt.Printf(lineStart)
+	fmt.Printf(domain.LineStart)
 }
 
 func pubHandler(client mqtt.Client, topic string, err error) {
@@ -38,7 +39,7 @@ func pubHandler(client mqtt.Client, topic string, err error) {
 	} else {
 		fmt.Println("\npub", topic, "success")
 	}
-	fmt.Printf(lineStart)
+	fmt.Printf(domain.LineStart)
 }
 
 func subHandler(client mqtt.Client, topics []*mqtt.Topic, err error) {
@@ -47,7 +48,7 @@ func subHandler(client mqtt.Client, topics []*mqtt.Topic, err error) {
 	} else {
 		fmt.Println("\nsub", topics, "success")
 	}
-	fmt.Printf(lineStart)
+	fmt.Printf(domain.LineStart)
 }
 
 func unSubHandler(client mqtt.Client, topics []string, err error) {
@@ -56,20 +57,21 @@ func unSubHandler(client mqtt.Client, topics []string, err error) {
 	} else {
 		fmt.Println("\nunsub", topics, "success")
 	}
-	fmt.Printf(lineStart)
+	fmt.Printf(domain.LineStart)
 }
 
 func netHandler(client mqtt.Client, server string, err error) {
 	fmt.Println("\nconnection to server, error:", err)
-	fmt.Printf(lineStart)
+	fmt.Printf(domain.LineStart)
+	client.Destroy(false)
 }
 
 func topicHandler(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
 	fmt.Println("\n[MSG] topic:", topic, "msg:", string(msg), "qos:", qos)
-	fmt.Printf(lineStart)
+	fmt.Printf(domain.LineStart)
 }
 
 func invalidQos() {
 	fmt.Println("\nqos level should either be 0, 1 or 2")
-	fmt.Printf(lineStart)
+	fmt.Printf(domain.LineStart)
 }

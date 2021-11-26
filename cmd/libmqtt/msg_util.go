@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	mqtt "github.com/goiiot/libmqtt"
+	"github.com/goiiot/libmqtt/cmd/domain"
 	"math"
 	"strconv"
 )
@@ -22,21 +23,21 @@ func CreateSinglePubMsg(qos byte, topicName, payload string) []*mqtt.PublishPack
 */
 func getBytes(encodeType, dataStr string) (bytes []byte, err error) {
 	switch encodeType {
-	case "string", "json", "bin":
+	case domain.String, domain.Json, domain.Bin:
 		return []byte(dataStr), nil
-	case "int":
+	case domain.Int:
 		parseInt, err := strconv.ParseInt(dataStr, 10, 32)
 		if err != nil {
 			return nil, err
 		}
 		return []byte{byte(parseInt >> 24), byte(parseInt >> 16), byte(parseInt >> 8), byte(parseInt)}, nil
-	case "long":
+	case domain.Long:
 		long, err := strconv.ParseInt(dataStr, 10, 64)
 		if err != nil {
 			return nil, err
 		}
 		return []byte{byte(long >> 56), byte(long >> 48), byte(long >> 40), byte(long >> 32), byte(long >> 24), byte(long >> 16), byte(long >> 8), byte(long)}, nil
-	case "float":
+	case domain.Float:
 		float, err := strconv.ParseFloat(dataStr, 32)
 		if err != nil {
 			return nil, err
@@ -45,7 +46,7 @@ func getBytes(encodeType, dataStr string) (bytes []byte, err error) {
 		bytes := make([]byte, 4)
 		binary.BigEndian.PutUint32(bytes, bits)
 		return bytes, nil
-	case "double":
+	case domain.Double:
 		float, err := strconv.ParseFloat(dataStr, 64)
 		if err != nil {
 			return nil, err

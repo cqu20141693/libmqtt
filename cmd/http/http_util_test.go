@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetMqttInfo(t *testing.T) {
-	info, err := GetMirrorMqttInfo("http://172.30.203.22:11093/api/device/authenticate/config/getMirrorAuth?groupKey=tPH6EZy6UbIxHxkg&sn=dVwEOrHihSRHtZTm")
+	info, err := GetMirrorMqttInfo([]string{"tPH6EZy6UbIxHxkg", "dVwEOrHihSRHtZTm", "http://172.30.203.22:11093/api/device/authenticate/config/getMirrorAuth"})
 	if err != nil {
 		fmt.Println("get mqtt info error")
 	}

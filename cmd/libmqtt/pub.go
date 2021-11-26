@@ -42,7 +42,7 @@ func execPub(client *mqtt.AsyncClient, messages []string) bool {
 			pubUsage()
 			return false
 		}
-		bytes, err := getBytes(pubStr[2], pubStr[3])
+		bytes, err := getCipherData(client, pubStr[2], pubStr[3])
 		if err != nil {
 			fmt.Printf("topic=%v qos=%v type=%v data=%v encode error \n", pubStr[0], pubStr[1], pubStr[2], pubStr[3])
 			continue

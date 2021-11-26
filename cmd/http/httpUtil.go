@@ -3,19 +3,18 @@ package http
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/goiiot/libmqtt/cmd/json"
-	"strings"
 )
 
-func GetMirrorMqttInfo(url string) (info *json.MqttInfo, e error) {
-	split := strings.Split(url, "?")
+func GetMirrorMqttInfo(args []string) (info *json.MqttInfo, e error) {
 	client := resty.New()
 	r := client.R()
-	if len(split) == 2 {
-		r.SetQueryString(split[1]).
+	if len(args) == 3 {
+		r.SetQueryString("groupKey="+args[0]+"&"+"sn="+args[1]).
 			SetHeader("Accept", "application/json")
-
+	} else {
+		return
 	}
-	response, err := r.Post(split[0])
+	response, err := r.Post(args[2])
 	if err != nil {
 		return nil, err
 	}

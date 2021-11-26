@@ -17,15 +17,20 @@
 package main
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"github.com/goiiot/libmqtt/cmd/crypto"
+	"github.com/goiiot/libmqtt/cmd/domain"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
 	mqtt "github.com/goiiot/libmqtt"
 )
 
-func execConn(args []string, version mqtt.ProtoVersion) (client mqtt.Client, err error) {
+func execConn(args []string, version mqtt.ProtoVersion, info *domain.ClientInfo) (client mqtt.Client, err error) {
 	if len(args) < 5 {
 		return nil, err
 	}
@@ -94,7 +99,7 @@ func execConn(args []string, version mqtt.ProtoVersion) (client mqtt.Client, err
 	}
 	options = append(options, mqtt.WithKeepalive(uint16(keepAlive), 1.2))
 	options = append(options, mqtt.WithVersion(version, false))
-	return newClient(options, args[0])
+	return newClient(options, args[0], info)
 }
 
 func execDisConn(args []string) bool {
@@ -108,7 +113,10 @@ func execDisConn(args []string) bool {
 	return true
 }
 
-func newClient(options []mqtt.Option, server string) (client mqtt.Client, err error) {
+type ConnectionPreProcess func(client mqtt.Client)
+type PostHandler func(client mqtt.Client)
+
+func newClient(options []mqtt.Option, server string, info *domain.ClientInfo) (client mqtt.Client, err error) {
 
 	allOpts := append([]mqtt.Option{
 		mqtt.WithPubHandleFunc(pubHandler),
@@ -124,22 +132,97 @@ func newClient(options []mqtt.Option, server string) (client mqtt.Client, err er
 		println(err.Error())
 		return nil, err
 	}
+	// add client info
+	domain.ClientInfoMap[client] = info
+	AddHandler(welcomeTopic, welcomeHandler)
+	AddHandler(cmdTopic, cmdHandler)
 	client.HandleTopic(".*", func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
-		fmt.Printf("\n[%v] message: %v qos:%v \n", topic, string(msg), qos)
-		fmt.Printf(lineStart)
+		if clientInfo, ok := domain.ClientInfoMap[client]; ok {
+			switch clientInfo.Model {
+			case domain.SM4:
+				var token []byte
+				if welcomeTopic == topic {
+					token = []byte(clientInfo.Token)
+				} else {
+					token = []byte(clientInfo.Welcome().CryptoSecret)
+				}
+				decrypt, err := crypto.DoSM4Decrypt(msg, token, token)
+				if err != nil {
+					fmt.Printf("msg DoSM4Decrypt failed ,close client,msg=%s \n", base64.StdEncoding.EncodeToString(msg))
+					fmt.Printf(domain.LineStart)
+					return
+				}
+				fmt.Printf("\n[%v] message: %v qos:%v \n", topic, string(decrypt), qos)
+				fmt.Printf(domain.LineStart)
+				handleMsg(client, topic, qos, decrypt)
+			default:
+				fmt.Printf("\n[%v] message: %v qos:%v \n", topic, string(msg), qos)
+				fmt.Printf(domain.LineStart)
+				handleMsg(client, topic, qos, msg)
+			}
+		} else {
+			fmt.Printf("clientInfo not exist ,close client \n")
+			fmt.Printf(domain.LineStart)
+		}
+
 	})
-	client.HandleTopic("sys/cmd/*", func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
-		split := strings.Split(topic, "/")
-		cmdTag := split[len(split)-1]
-		completeTopic := strings.Join([]string{"sys", "cmdSync", cmdTag, "complete"}, "/")
-		pubMsg := CreateSinglePubMsg(0, completeTopic, "")
-		client.Publish(pubMsg...)
-	})
+
+	//client.HandleTopic("sys/welcome", welcomeHandler)
+	//client.HandleTopic("sys/cmd/*", cmdHandler)
 	err = client.ConnectServer(server, allOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return client, nil
+}
+
+var handlerMap = make(map[*regexp.Regexp]mqtt.TopicHandleFunc, 8)
+
+func AddHandler(topicRegex string, h mqtt.TopicHandleFunc) {
+	handlerMap[regexp.MustCompile(topicRegex)] = h
+}
+
+const (
+	welcomeTopic = "sys/welcome"
+	cmdTopic     = "sys/cmd/*"
+)
+
+var welcomeHandler = func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
+	if clientInfo, ok := domain.ClientInfoMap[client]; ok {
+		saveWelcome(msg, clientInfo)
+	} else {
+
+		fmt.Printf("clientInfo not exist ,close client")
+		fmt.Printf(domain.LineStart)
+	}
+
+}
+var cmdHandler = func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
+	split := strings.Split(topic, "/")
+	cmdTag := split[len(split)-1]
+	completeTopic := strings.Join([]string{"sys", "cmdSync", cmdTag, "complete"}, "/")
+	pubMsg := CreateSinglePubMsg(0, completeTopic, "")
+	client.Publish(pubMsg...)
+}
+
+func handleMsg(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
+	for r, handleFunc := range handlerMap {
+		if r.MatchString(topic) {
+			handleFunc(client, topic, qos, msg)
+		}
+	}
+}
+
+func saveWelcome(msg []byte, clientInfo *domain.ClientInfo) {
+	var welcome domain.WelcomeInfo
+	err1 := json.Unmarshal(msg, &welcome)
+	if err1 != nil {
+		fmt.Printf("welcome msg Unmarshal failed ")
+		fmt.Printf(domain.LineStart)
+
+	}
+	clientInfo.SetWelcome(welcome)
+
 }
 
 func connUsage() {
