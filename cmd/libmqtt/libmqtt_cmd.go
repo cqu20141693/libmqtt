@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
@@ -255,7 +256,7 @@ func handleConn(params []string, args []string, version mqtt.ProtoVersion) (ok b
 }
 
 func getSubGroupConnInfo(args []string) (infos []string, err error) {
-	if len(args) != 4 {
+	if len(args) != 6 {
 		return nil, err
 	}
 	devices := strings.Split(args[4], ",")
@@ -268,8 +269,8 @@ func getSubGroupConnInfo(args []string) (infos []string, err error) {
 	return []string{args[0], mqttInfo.ClientIdentifier, mqttInfo.Username, "SG:" + mqttInfo.Password, args[5]}, nil
 }
 func getMirrorConnInfo(args []string) (infos []string, err error) {
-	if len(args) != 3 {
-		return nil, err
+	if len(args) != 5 {
+		return nil, errors.New("params length error")
 	}
 	mqttInfo, err := http.GetMirrorMqttInfo(args[1:4])
 	if err != nil {
