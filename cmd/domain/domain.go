@@ -1,5 +1,6 @@
 package domain
 
+// 冲程 mqtt domain
 import mqtt "github.com/goiiot/libmqtt"
 
 const (

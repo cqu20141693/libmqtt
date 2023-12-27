@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"github.com/goiiot/libmqtt/cmd/crypto"
 	"github.com/goiiot/libmqtt/cmd/domain"
+	"github.com/goiiot/libmqtt/cmd/utils"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -74,7 +74,7 @@ func execConn(args []string, version mqtt.ProtoVersion, info *domain.ClientInfo)
 			case "will_qos":
 				qos, err := strconv.Atoi(kv[1])
 				if err != nil || qos > 2 {
-					invalidQos()
+					utils.InvalidQos()
 					return nil, err
 				}
 				willQos = mqtt.QosLevel(qos)
@@ -119,11 +119,11 @@ type PostHandler func(client mqtt.Client)
 func newClient(options []mqtt.Option, server string, info *domain.ClientInfo) (client mqtt.Client, err error) {
 
 	allOpts := append([]mqtt.Option{
-		mqtt.WithPubHandleFunc(pubHandler),
-		mqtt.WithConnHandleFunc(connHandler),
-		mqtt.WithUnsubHandleFunc(unSubHandler),
-		mqtt.WithNetHandleFunc(netHandler),
-		mqtt.WithSubHandleFunc(subHandler),
+		mqtt.WithPubHandleFunc(utils.PubHandler),
+		mqtt.WithConnHandleFunc(utils.ConnHandler),
+		mqtt.WithUnsubHandleFunc(utils.UnSubHandler),
+		mqtt.WithNetHandleFunc(utils.NetHandler),
+		mqtt.WithSubHandleFunc(utils.SubHandler),
 		mqtt.WithRouter(mqtt.NewRegexRouter()),
 	}, options...)
 
@@ -134,14 +134,14 @@ func newClient(options []mqtt.Option, server string, info *domain.ClientInfo) (c
 	}
 	// add client info
 	domain.ClientInfoMap[client] = info
-	AddHandler(welcomeTopic, welcomeHandler)
-	AddHandler(cmdTopic, cmdHandler)
+	utils.AddHandler(utils.WelcomeTopic, welcomeHandler)
+	utils.AddHandler(utils.CmdTopic, cmdHandler)
 	client.HandleTopic(".*", func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
 		if clientInfo, ok := domain.ClientInfoMap[client]; ok {
 			switch clientInfo.Model {
 			case domain.SM4:
 				var token []byte
-				if welcomeTopic == topic {
+				if utils.WelcomeTopic == topic {
 					token = []byte(clientInfo.Token)
 				} else {
 					token = []byte(clientInfo.Welcome().CryptoSecret)
@@ -154,11 +154,11 @@ func newClient(options []mqtt.Option, server string, info *domain.ClientInfo) (c
 				}
 				fmt.Printf("\n[%v] message: %v qos:%v \n", topic, string(decrypt), qos)
 				fmt.Printf(domain.LineStart)
-				handleMsg(client, topic, qos, decrypt)
+				utils.HandleMsg(client, topic, qos, decrypt)
 			default:
 				fmt.Printf("\n[%v] message: %v qos:%v \n", topic, string(msg), qos)
 				fmt.Printf(domain.LineStart)
-				handleMsg(client, topic, qos, msg)
+				utils.HandleMsg(client, topic, qos, msg)
 			}
 		} else {
 			fmt.Printf("clientInfo not exist ,close client \n")
@@ -176,17 +176,6 @@ func newClient(options []mqtt.Option, server string, info *domain.ClientInfo) (c
 	return client, nil
 }
 
-var handlerMap = make(map[*regexp.Regexp]mqtt.TopicHandleFunc, 8)
-
-func AddHandler(topicRegex string, h mqtt.TopicHandleFunc) {
-	handlerMap[regexp.MustCompile(topicRegex)] = h
-}
-
-const (
-	welcomeTopic = "sys/welcome"
-	cmdTopic     = "sys/cmd/*"
-)
-
 var welcomeHandler = func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
 	if clientInfo, ok := domain.ClientInfoMap[client]; ok {
 		saveWelcome(msg, clientInfo)
@@ -203,14 +192,6 @@ var cmdHandler = func(client mqtt.Client, topic string, qos mqtt.QosLevel, msg [
 	completeTopic := strings.Join([]string{"sys", "cmdSync", cmdTag, "complete"}, "/")
 	pubMsg := CreateSinglePubMsg(0, completeTopic, "")
 	client.Publish(pubMsg...)
-}
-
-func handleMsg(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
-	for r, handleFunc := range handlerMap {
-		if r.MatchString(topic) {
-			handleFunc(client, topic, qos, msg)
-		}
-	}
 }
 
 func saveWelcome(msg []byte, clientInfo *domain.ClientInfo) {

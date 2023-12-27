@@ -73,6 +73,18 @@ type AsyncClient struct {
 	stopSig <-chan struct{}
 }
 
+func (c *AsyncClient) Options() connectOptions {
+	return c.options
+}
+
+func (c *AsyncClient) Reconnect(server string) {
+
+	if val, ok := c.connectedServers.Load(server); ok {
+		conn := val.(*clientConn)
+		conn.exit()
+	}
+}
+
 // create a client with default options
 func defaultClient() *AsyncClient {
 	ctx, exitFunc := context.WithCancel(context.Background())

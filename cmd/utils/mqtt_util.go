@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package main
+package utils
 
 import (
 	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
 	"github.com/goiiot/libmqtt/cmd/domain"
+	"regexp"
 )
 
-func connHandler(client mqtt.Client, server string, code byte, err error) {
+func ConnHandler(client mqtt.Client, server string, code byte, err error) {
 	if err != nil {
 		fmt.Println("\nconnect to server error:", err)
 	} else if code != mqtt.CodeSuccess {
@@ -33,7 +34,7 @@ func connHandler(client mqtt.Client, server string, code byte, err error) {
 	fmt.Printf(domain.LineStart)
 }
 
-func pubHandler(client mqtt.Client, topic string, err error) {
+func PubHandler(client mqtt.Client, topic string, err error) {
 	if err != nil {
 		fmt.Println("\npub", topic, "failed, error =", err)
 	} else {
@@ -42,7 +43,7 @@ func pubHandler(client mqtt.Client, topic string, err error) {
 	fmt.Printf(domain.LineStart)
 }
 
-func subHandler(client mqtt.Client, topics []*mqtt.Topic, err error) {
+func SubHandler(client mqtt.Client, topics []*mqtt.Topic, err error) {
 	if err != nil {
 		fmt.Println("\nsub", topics, "failed, error =", err)
 	} else {
@@ -51,7 +52,7 @@ func subHandler(client mqtt.Client, topics []*mqtt.Topic, err error) {
 	fmt.Printf(domain.LineStart)
 }
 
-func unSubHandler(client mqtt.Client, topics []string, err error) {
+func UnSubHandler(client mqtt.Client, topics []string, err error) {
 	if err != nil {
 		fmt.Println("\nunsub", topics, "failed, error =", err)
 	} else {
@@ -60,18 +61,52 @@ func unSubHandler(client mqtt.Client, topics []string, err error) {
 	fmt.Printf(domain.LineStart)
 }
 
-func netHandler(client mqtt.Client, server string, err error) {
+func NetHandler(client mqtt.Client, server string, err error) {
 	fmt.Println("\nconnection to server, error:", err)
 	fmt.Printf(domain.LineStart)
 	client.Destroy(false)
 }
+func NetHandlerWithReconnect(client mqtt.Client, server string, err error) {
+	fmt.Println("\nconnection to server, error:", err)
+	fmt.Printf(domain.LineStart)
+	client.Reconnect(server)
+}
 
-func topicHandler(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
+func TopicHandler(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
 	fmt.Println("\n[MSG] topic:", topic, "msg:", string(msg), "qos:", qos)
 	fmt.Printf(domain.LineStart)
 }
 
-func invalidQos() {
+func InvalidQos() {
 	fmt.Println("\nqos level should either be 0, 1 or 2")
 	fmt.Printf(domain.LineStart)
+}
+
+// 配置常量
+const (
+	WelcomeTopic = "sys/welcome"
+	CmdTopic     = "sys/cmd/*"
+)
+
+var handlerMap = make(map[*regexp.Regexp]mqtt.TopicHandleFunc, 8)
+
+// AddHandler
+// 添加topic 处理器
+func AddHandler(topicRegex string, h mqtt.TopicHandleFunc) {
+	handlerMap[regexp.MustCompile(topicRegex)] = h
+}
+
+func HandleMsg(client mqtt.Client, topic string, qos mqtt.QosLevel, msg []byte) {
+	for r, handleFunc := range handlerMap {
+		if r.MatchString(topic) {
+			handleFunc(client, topic, qos, msg)
+		}
+	}
+}
+func CreatePublishPacket(topic string, qos byte, message string) *mqtt.PublishPacket {
+	return &mqtt.PublishPacket{
+		TopicName: topic,
+		Qos:       qos,
+		Payload:   []byte(message),
+	}
 }

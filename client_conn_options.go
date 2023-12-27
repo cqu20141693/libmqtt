@@ -41,7 +41,13 @@ func (c *AsyncClient) ConnectServer(server string, connOptions ...Option) error 
 
 	return nil
 }
+func (c *AsyncClient) ReconnectServer(server string) error {
+	options := c.options.clone()
 
+	c.addWorker(func() { options.connect(c, server, options.protoVersion, options.firstDelay) })
+
+	return nil
+}
 func defaultConnectOptions() connectOptions {
 	return connectOptions{
 		protoVersion:    V311,

@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/goiiot/libmqtt/cmd/utils"
 	"strconv"
 	"strings"
 
@@ -45,7 +46,7 @@ func execSub(client *mqtt.AsyncClient, args []string) bool {
 		topics = append(topics, &mqtt.Topic{Name: topicStr[0], Qos: mqtt.QosLevel(qos)})
 	}
 	for _, t := range topics {
-		client.HandleTopic(t.Name, topicHandler)
+		client.HandleTopic(t.Name, utils.TopicHandler)
 	}
 	client.Subscribe(topics...)
 	return true
