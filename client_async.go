@@ -77,6 +77,8 @@ func (c *AsyncClient) Options() connectOptions {
 	return c.options
 }
 
+// Reconnect 重连:当出现网络异常时，自动重连
+// 如果主动断开连接，connectedServers缓存已经被清理
 func (c *AsyncClient) Reconnect(server string) {
 
 	if val, ok := c.connectedServers.Load(server); ok {

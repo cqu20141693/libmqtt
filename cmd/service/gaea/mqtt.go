@@ -17,6 +17,7 @@ func newClient(options []mqtt.Option, server string) (client mqtt.Client, err er
 		mqtt.WithNetHandleFunc(utils.NetHandlerWithReconnect),
 		mqtt.WithSubHandleFunc(utils.SubHandler),
 		mqtt.WithRouter(mqtt.NewRegexRouter()),
+		// 支持连接失败，自动重连
 		mqtt.WithAutoReconnect(true),
 		mqtt.WithBackoffStrategy(1*time.Second, 10*time.Second, 1.5),
 	}, options...)

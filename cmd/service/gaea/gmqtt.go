@@ -21,6 +21,9 @@ func StartMock(rg *gin.RouterGroup) {
 			info := domain.ClientMaps[clientId]
 			if info != nil {
 				cclog.Info("start mock %v", info)
+				for _, policy := range info.MockPolicy {
+					policy.Enable = true
+				}
 				startMock(info)
 			}
 		}
@@ -33,11 +36,33 @@ func StopMock(rg *gin.RouterGroup) {
 		clientId, exist := c.GetQuery("clientId")
 		if exist {
 			info := domain.ClientMaps[clientId]
-			info.Scheduler().Stop()
+			info.Scheduler.Stop()
 			c.JSON(http.StatusOK, "success")
 		} else {
 			c.JSON(http.StatusOK, "success")
 		}
+	})
+}
+func UpdateMock(rg *gin.RouterGroup) {
+	rg.POST("/updateMock", func(c *gin.Context) {
+		clientId, exist := c.GetQuery("clientId")
+		if exist {
+			info := domain.ClientMaps[clientId]
+			if info != nil {
+				cclog.Info("update mock %v", clientId)
+				var policies []domain.PublishMockPolicy
+				err := c.BindJSON(&policies)
+				if err != nil {
+					cclog.Error(err)
+					c.JSON(http.StatusBadRequest, "parameter error")
+					return
+				}
+				info.MockPolicy = policies
+				startMock(info)
+			}
+		}
+		c.JSON(http.StatusOK, "success")
+
 	})
 }
 func GetClients(rg *gin.RouterGroup) {
@@ -56,12 +81,16 @@ func DisconnectClient(rg *gin.RouterGroup) {
 	rg.GET("/disconnectClient", func(c *gin.Context) {
 		clientId, exist := c.GetQuery("clientId")
 		if exist {
-			info := domain.ClientMaps[clientId]
-			success := info.Client().Disconnect(info.Server, nil)
-			c.JSON(http.StatusOK, fmt.Sprintf("disconnectClient %v", success))
-		} else {
-			c.JSON(http.StatusOK, "client not exist")
+			if info, ok := domain.ClientMaps[clientId]; ok {
+
+				success := info.Client.Disconnect(info.Server, nil)
+				info.Connected = false
+				c.JSON(http.StatusOK, fmt.Sprintf("disconnectClient %v", success))
+				return
+			}
 		}
+		c.JSON(http.StatusOK, "client not exist")
+
 	})
 }
 
@@ -69,18 +98,28 @@ func ReconnectClient(rg *gin.RouterGroup) {
 	rg.GET("/reconnectClient", func(c *gin.Context) {
 		clientId, exist := c.GetQuery("clientId")
 		if exist {
-			info := domain.ClientMaps[clientId]
-			err := info.Client().ReconnectServer(info.Server)
-			if err != nil {
-				cclog.Error(err)
+			if info, ok := domain.ClientMaps[clientId]; ok {
+				if !info.Connected {
+					err := info.Client.ReconnectServer(info.Server)
+					if err != nil {
+						cclog.Error(err)
+						c.JSON(http.StatusOK, fmt.Sprintf("reconnect failed %v", err))
+						return
+					}
+					info.Connected = true
+				} else {
+					c.JSON(http.StatusOK, fmt.Sprintf("client already connected"))
+					return
+				}
+				c.JSON(http.StatusOK, "success")
 				return
 			}
-			c.JSON(http.StatusOK, "success")
-		} else {
-			c.JSON(http.StatusOK, "client not exist")
 		}
+		c.JSON(http.StatusOK, "client not exist")
+
 	})
 }
+
 func PublishMsg(rg *gin.RouterGroup) {
 	rg.POST("/publishMsg", func(c *gin.Context) {
 		clientId, exist := c.GetQuery("clientId")
@@ -105,7 +144,7 @@ func PublishMsg(rg *gin.RouterGroup) {
 						continue
 					}
 					message := string(msg)
-					info.Client().Publish(utils.CreatePublishPacket(infos[i].Topic, infos[i].Qos, message))
+					info.Client.Publish(utils.CreatePublishPacket(infos[i].Topic, infos[i].Qos, message))
 				}
 			}
 
@@ -139,27 +178,26 @@ func CreateClientRoutes(rg *gin.RouterGroup) {
 			return
 		}
 		clientInfo := domain.NewGClientInfo(info.Address, info.ClientID, info.Username, info.Password, info.Keepalive)
+		clientInfo.Connected = true
 		clientInfo.SetClient(client)
 		clientInfo.MockPolicy = info.MockPolicy
 		if startMock(clientInfo) {
 			return
 		}
-		domain.ClientMaps[clientInfo.ClientID()] = clientInfo
+		domain.ClientMaps[clientInfo.ClientID] = clientInfo
 		c.JSON(http.StatusOK, "success")
 	})
 }
 
 func startMock(clientInfo *domain.GClientInfo) bool {
-	if clientInfo.MockPolicy != nil {
+	if clientInfo.EnableMock && clientInfo.MockPolicy != nil {
 		for i := range clientInfo.MockPolicy {
 			if clientInfo.MockPolicy[i].Enable {
 				policy := clientInfo.MockPolicy[i]
 				scheduler := gocron.NewScheduler(time.Local)
 				_, err := scheduler.Every(policy.Frequency).Millisecond().Do(func() {
-					if clientInfo.EnableMock() {
-						fmt.Printf("timer %v ms publish message", policy.Frequency)
-						clientInfo.Client().Publish(utils.CreatePublishPacket(policy.Topic, policy.Qos, policy.Message))
-					}
+					fmt.Printf("timer %v ms publish message", policy.Frequency)
+					clientInfo.Client.Publish(utils.CreatePublishPacket(policy.Topic, policy.Qos, policy.Message))
 
 				})
 				if err != nil {

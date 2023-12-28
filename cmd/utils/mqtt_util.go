@@ -25,11 +25,11 @@ import (
 
 func ConnHandler(client mqtt.Client, server string, code byte, err error) {
 	if err != nil {
-		fmt.Println("\nconnect to server error:", err)
+		fmt.Printf("\nconnect to server:%v error:%v\n", server, err)
 	} else if code != mqtt.CodeSuccess {
-		fmt.Println("\nconnection rejected by server, code:", code)
+		fmt.Printf("\nconnection rejected by server：%v, code:%v\n", server, code)
 	} else {
-		fmt.Println("\nconnected to server")
+		fmt.Printf("\nconnected to server:%v\n", server)
 	}
 	fmt.Printf(domain.LineStart)
 }

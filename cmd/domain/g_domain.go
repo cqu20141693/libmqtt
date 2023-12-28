@@ -26,74 +26,75 @@ type PublishMockPolicy struct {
 
 type GClientInfo struct {
 	Server     string
-	clientID   string
-	username   string
-	password   string
-	keepalive  int64
-	scheduler  *gocron.Scheduler
-	client     mqtt.Client
-	enableMock bool
+	ClientID   string
+	Username   string
+	Password   string
+	Keepalive  int64
+	Scheduler  *gocron.Scheduler
+	Client     mqtt.Client
+	EnableMock bool
+	Connected  bool
 	MockPolicy []PublishMockPolicy `form:"mockPolicy" json:"mockPolicy" xml:"mockPolicy"`
 }
 
-func (G *GClientInfo) Scheduler() *gocron.Scheduler {
-	return G.scheduler
+func (G *GClientInfo) GetScheduler() *gocron.Scheduler {
+	return G.Scheduler
 }
 
 func (G *GClientInfo) SetScheduler(scheduler *gocron.Scheduler) {
-	G.scheduler = scheduler
+	G.Scheduler = scheduler
 }
 
-func (G *GClientInfo) EnableMock() bool {
-	return G.enableMock
+func (G *GClientInfo) GetEnableMock() bool {
+	return G.EnableMock
 }
 
 func (G *GClientInfo) SetEnableMock(enableMock bool) {
-	G.enableMock = enableMock
+	G.EnableMock = enableMock
 }
 
-func (G *GClientInfo) ClientID() string {
-	return G.clientID
+func (G *GClientInfo) GetClientID() string {
+	return G.ClientID
 }
 
 func (G *GClientInfo) SetClientID(clientID string) {
-	G.clientID = clientID
+	G.ClientID = clientID
 }
 
-func (G *GClientInfo) Username() string {
-	return G.username
+func (G *GClientInfo) GetUsername() string {
+	return G.Username
 }
 
 func (G *GClientInfo) SetUsername(username string) {
-	G.username = username
+	G.Username = username
 }
 
-func (G *GClientInfo) Password() string {
-	return G.password
+func (G *GClientInfo) GetPassword() string {
+	return G.Password
 }
 
 func (G *GClientInfo) SetPassword(password string) {
-	G.password = password
+	G.Password = password
 }
 
-func (G *GClientInfo) Keepalive() int64 {
-	return G.keepalive
+func (G *GClientInfo) GetKeepalive() int64 {
+	return G.Keepalive
 }
 
 func (G *GClientInfo) SetKeepalive(keepalive int64) {
-	G.keepalive = keepalive
+	G.Keepalive = keepalive
 }
 
-func (G *GClientInfo) Client() mqtt.Client {
-	return G.client
+func (G *GClientInfo) GetClient() mqtt.Client {
+	return G.Client
 }
 
 func (G *GClientInfo) SetClient(client mqtt.Client) {
-	G.client = client
+	G.Client = client
 }
 
 func NewGClientInfo(server string, clientID string, username string, password string, keepalive int64) *GClientInfo {
-	return &GClientInfo{Server: server, clientID: clientID, username: username, password: password, keepalive: keepalive, enableMock: true}
+	return &GClientInfo{Server: server, ClientID: clientID, Username: username, Password: password, Keepalive: keepalive, EnableMock: true}
 }
 
 var ClientMaps = make(map[string]*GClientInfo, 8)

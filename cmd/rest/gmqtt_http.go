@@ -28,14 +28,29 @@ func main() {
 func getRoutes() {
 
 	//api
+	initGMqttApi()
+}
+
+func initGMqttApi() {
 	api := router.Group("/api/gmqtt")
+	// 执行配置，建立client连接
 	gaea.CreateClientRoutes(api)
+	// 获取当前的客户端配置
 	gaea.GetClients(api)
+	//启用mock配置，开启定时推送任务
 	gaea.StopMock(api)
+	// 停止mock任务
 	gaea.StartMock(api)
+	// 更新mock任务
+	gaea.UpdateMock(api)
+	// 主动断开连接
 	gaea.DisconnectClient(api)
+	// 重连客户端
 	gaea.ReconnectClient(api)
+	// 一次性推送mqtt
 	gaea.PublishMsg(api)
+
+	// test api
 	v1 := router.Group("/v1")
 	gaea.AddPingRoutes(v1)
 
