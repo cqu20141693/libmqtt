@@ -36,7 +36,11 @@ type TopicHandler func(topic string, qos QosLevel, msg []byte)
 
 // PubHandleFunc handles the error occurred when publish some message
 // if err is not nil, that means a error occurred when sending pub msg
-type PubHandleFunc func(client Client, topic string, err error)
+type PubHandleFunc func(client Client, topic string, msg string, err error)
+
+// ReceiveHandleFunc handles the error occurred when publish some message
+// if err is not nil, that means a error occurred when sending pub msg
+type ReceiveHandleFunc func(client Client, topic string, msg string, err error)
 
 // Deprecated: use PubHandleFunc instead, will be removed in v1.0
 type PubHandler func(topic string, err error)
@@ -70,7 +74,7 @@ type PersistHandler func(err error)
 // Deprecated: use WithPubHandleFunc instead (will be removed in v1.0)
 func (c *AsyncClient) HandlePub(h PubHandler) {
 	c.log.d("CLI registered pub handler")
-	c.pubHandler = func(client Client, topic string, err error) {
+	c.pubHandler = func(client Client, topic string, msg string, err error) {
 		h(topic, err)
 	}
 }

@@ -113,7 +113,7 @@ func (c *clientConn) logic() {
 				c.parent.log.v("NET received publish, topic =", p.TopicName, "id =", p.PacketID, "QoS =", p.Qos)
 				// received server publish, send to client
 				c.parent.recvCh <- p
-
+				notifyReceiveMsg(c.parent.msgCh, p.TopicName, string(p.Payload), nil)
 				// tend to QoS
 				switch p.Qos {
 				case Qos1:
@@ -136,7 +136,7 @@ func (c *clientConn) logic() {
 					case *PublishPacket:
 						if originPub.Qos == Qos1 {
 							c.parent.log.d("NET published qos1 packet, topic =", originPub.TopicName)
-							notifyPubMsg(c.parent.msgCh, originPub.TopicName, nil)
+							notifyPubMsg(c.parent.msgCh, originPub.TopicName, string(originPub.Payload), nil)
 							c.parent.idGen.free(p.PacketID)
 
 							notifyPersistMsg(c.parent.msgCh, p, c.parent.persist.Delete(sendKey(p.PacketID)))
@@ -182,7 +182,7 @@ func (c *clientConn) logic() {
 							c.send(&PubRelPacket{PacketID: p.PacketID})
 							c.parent.log.d("NET send PubRel, id =", p.PacketID)
 							c.parent.log.d("NET published qos2 packet, topic =", originPub.TopicName)
-							notifyPubMsg(c.parent.msgCh, originPub.TopicName, nil)
+							notifyPubMsg(c.parent.msgCh, originPub.TopicName, string(originPub.Payload), nil)
 							c.parent.idGen.free(p.PacketID)
 
 							notifyPersistMsg(c.parent.msgCh, p, c.parent.persist.Delete(sendKey(p.PacketID)))
@@ -280,7 +280,7 @@ func (c *clientConn) handleSend() {
 			case *PublishPacket:
 				if p.Qos == 0 {
 					c.parent.log.d("NET published qos0 packet, topic =", p.TopicName)
-					notifyPubMsg(c.parent.msgCh, p.TopicName, nil)
+					notifyPubMsg(c.parent.msgCh, p.TopicName, string(p.Payload), nil)
 				}
 			case *DisconnPacket:
 				// client exit with disconnect

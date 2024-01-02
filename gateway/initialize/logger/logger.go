@@ -1,9 +1,9 @@
 package logger
 
 import (
-	"github.com/goiiot/libmqtt/cmd/initialize/config"
-	"github.com/goiiot/libmqtt/cmd/initialize/logger/cclog"
 	"github.com/goiiot/libmqtt/cmd/utils/file"
+	"github.com/goiiot/libmqtt/gateway/initialize/config"
+	"github.com/goiiot/libmqtt/gateway/initialize/logger/cclog"
 	"os"
 	"strings"
 )
@@ -12,7 +12,7 @@ func init() {
 	ConfigRotate()
 }
 func ConfigRotate() {
-	cclog.AddWriter("console", cclog.NewCCLogWriter(cclog.NewLogger(os.Stdout)))
+	cclog.AddWriter("console", cclog.NewCCLogWriter(cclog.NewProductionLogger(os.Stdout)))
 	addDefaultConfig()
 	rotateTime := config.Viper.GetString("will.log.rotate-time")
 	maxAge := config.Viper.GetInt64("will.log.max-age")

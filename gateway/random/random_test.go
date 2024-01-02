@@ -10,23 +10,31 @@ var ProductId = "1739547140905361408"
 
 func TestMockJSON(t *testing.T) {
 
-	devices := 100
+	devices := 150
 	var infos = make([]map[string]interface{}, 0)
 	for i := 0; i < devices; i++ {
-		device := mockDeviceInfo()
+		//deviceTopic := mockDeviceInfoWithTopic()
+		deviceTopic := MockDeviceInfo()
 
-		infos = append(infos, device)
+		infos = append(infos, deviceTopic)
 	}
 
 	marshal, _ := json.Marshal(infos)
 	fmt.Println(string(marshal))
+	//cclog.Info(string(marshal))
 }
 
-func mockDeviceInfo() map[string]interface{} {
+func mockDeviceInfoWithTopic() map[string]interface{} {
 	var message = make(map[string]interface{})
 	message["topic"] = "v1/gateway/connect"
 	message["qos"] = 1
 
+	json := MockDeviceInfo()
+	message["message"] = json
+	return message
+}
+
+func MockDeviceInfo() map[string]interface{} {
 	keys := []string{"productName", "deviceId", "deviceName"}
 	json := randomJSON(keys)
 	json["productId"] = ProductId
@@ -42,8 +50,7 @@ func mockDeviceInfo() map[string]interface{} {
 		timeseries = append(timeseries, values)
 	}
 	json["timeseries"] = timeseries
-	message["message"] = json
-	return message
+	return json
 }
 
 func randomByFixName(types []string) string {
@@ -57,7 +64,7 @@ func randomByFixName(types []string) string {
 func randomJSON(keys []string) map[string]interface{} {
 	var json = make(map[string]interface{})
 	for _, key := range keys {
-		randString := RandString(4)
+		randString := RandString(6)
 		json[key] = randString
 	}
 	return json

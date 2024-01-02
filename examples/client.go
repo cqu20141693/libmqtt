@@ -150,7 +150,7 @@ func unSubHandler(client libmqtt.Client, topic []string, err error) {
 	}
 }
 
-func pubHandler(client libmqtt.Client, topic string, err error) {
+func pubHandler(client libmqtt.Client, topic string, msg string, err error) {
 	if err != nil {
 		log.Printf("publish packet to topic [%v] failed: %v", topic, err)
 	} else {

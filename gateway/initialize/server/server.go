@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/goiiot/libmqtt/cmd/initialize/logger/cclog"
+	"github.com/goiiot/libmqtt/gateway/initialize/logger/cclog"
 	"net/http"
 	"os"
 	"os/signal"

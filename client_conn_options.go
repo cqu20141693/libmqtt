@@ -212,6 +212,7 @@ func (c connectOptions) connect(
 
 		parent.log.i("CLI connected to server =", server)
 		if c.connHandler != nil {
+
 			parent.addWorker(func() { c.connHandler(parent, server, CodeSuccess, nil) })
 		}
 

@@ -13,8 +13,8 @@ var logs = map[string]Writer{"console": getConsoleWriter()}
 var console Writer
 
 func getConsoleWriter() Writer {
-	stdout := newLogger(os.Stdout, zapcore.InfoLevel)
-	console = NewCCLogWriter(stdout)
+	//stdout := newLogger(os.Stdout, zapcore.InfoLevel)
+	console = NewCCLogWriter(NewProductionLogger(os.Stdout))
 	return console
 }
 func newLogger(w io.Writer, level zapcore.Level) *zap.Logger {
@@ -29,7 +29,7 @@ func newLogger(w io.Writer, level zapcore.Level) *zap.Logger {
 		zapcore.AddSync(w),
 		level,
 	)
-	return zap.New(core)
+	return zap.New(core, zap.AddCaller())
 }
 
 func AddWriter(key string, writer Writer) {

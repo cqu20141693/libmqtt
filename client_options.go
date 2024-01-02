@@ -99,7 +99,14 @@ func WithPubHandleFunc(handler PubHandleFunc) Option {
 		return nil
 	}
 }
-
+func WithReceiveHandleFunc(handler ReceiveHandleFunc) Option {
+	return func(client *AsyncClient, options *connectOptions) error {
+		if client.pubHandler == nil {
+			client.receiveHandler = handler
+		}
+		return nil
+	}
+}
 func WithSubHandleFunc(handler SubHandleFunc) Option {
 	return func(client *AsyncClient, options *connectOptions) error {
 		if client.subHandler == nil {
@@ -203,7 +210,8 @@ func WithAutoReconnect(autoReconnect bool) Option {
 // factor is applied to the backoff after each retry.
 //
 // e.g. FirstDelay = 1s and Factor = 2
-// 		then the SecondDelay is 2s, the ThirdDelay is 4s
+//
+//	then the SecondDelay is 2s, the ThirdDelay is 4s
 func WithBackoffStrategy(firstDelay, maxDelay time.Duration, factor float64) Option {
 	return func(c *AsyncClient, options *connectOptions) error {
 		if firstDelay < time.Millisecond {

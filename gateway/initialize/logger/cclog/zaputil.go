@@ -57,7 +57,7 @@ type zapCCLogWriter struct {
 // own timestamp.
 func (w zapCCLogWriter) Write(entry Entry) {
 	if ce := w.logger.Check(loggoToZap[entry.Level], entry.Message); ce != nil {
-		ce.Write(zap.String("module", entry.Module), zap.String("timestamp", entry.Timestamp.Format("2006-01-02 15:04:05.000")))
+		ce.Write()
 	}
 }
 
@@ -94,4 +94,10 @@ func NewLogger(w io.Writer) *zap.Logger {
 		defaultLevel,
 	)
 	return zap.New(core)
+}
+
+func NewProductionLogger(w io.Writer) *zap.Logger {
+
+	production, _ := zap.NewProduction()
+	return production
 }

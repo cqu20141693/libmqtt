@@ -24,20 +24,31 @@ const (
 	unSubMsg
 	netMsg
 	persistMsg
+	receiveMsg
 )
 
 type message struct {
-	what msgType
-	msg  string
-	err  error
-	obj  interface{}
+	what  msgType
+	topic string
+	msg   string
+	err   error
+	obj   interface{}
 }
 
-func notifyPubMsg(ch chan<- *message, topic string, err error) {
+func notifyPubMsg(ch chan<- *message, topic string, msg string, err error) {
 	ch <- &message{
-		what: pubMsg,
-		msg:  topic,
-		err:  err,
+		what:  pubMsg,
+		topic: topic,
+		msg:   msg,
+		err:   err,
+	}
+}
+func notifyReceiveMsg(ch chan<- *message, topic string, msg string, err error) {
+	ch <- &message{
+		what:  receiveMsg,
+		topic: topic,
+		msg:   msg,
+		err:   err,
 	}
 }
 
@@ -90,7 +101,7 @@ func (c *AsyncClient) handleMsg() {
 			switch m.what {
 			case pubMsg:
 				if c.pubHandler != nil {
-					c.addWorker(func() { c.pubHandler(c, m.msg, m.err) })
+					c.addWorker(func() { c.pubHandler(c, m.topic, m.msg, m.err) })
 				}
 			case subMsg:
 				if c.subHandler != nil {
@@ -107,6 +118,10 @@ func (c *AsyncClient) handleMsg() {
 			case persistMsg:
 				if c.persistHandler != nil {
 					c.addWorker(func() { c.persistHandler(c, m.obj.(Packet), m.err) })
+				}
+			case receiveMsg:
+				if c.receiveHandler != nil {
+					c.addWorker(func() { c.receiveHandler(c, m.topic, m.msg, m.err) })
 				}
 			}
 		}

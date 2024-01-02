@@ -1,7 +1,7 @@
 package cclog_test
 
 import (
-	"github.com/goiiot/libmqtt/cmd/initialize/logger/cclog"
+	"github.com/goiiot/libmqtt/gateway/initialize/logger/cclog"
 	"go.uber.org/zap/zapcore"
 	"testing"
 )

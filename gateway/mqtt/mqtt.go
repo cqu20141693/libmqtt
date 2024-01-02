@@ -1,21 +1,23 @@
-package gaea
+package mqtt
 
 import (
 	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
-	"github.com/goiiot/libmqtt/cmd/initialize/logger/cclog"
 	"github.com/goiiot/libmqtt/cmd/utils"
+	"github.com/goiiot/libmqtt/gateway/initialize/logger/cclog"
 	"time"
 )
 
-func newClient(options []mqtt.Option, server string) (client mqtt.Client, err error) {
+func NewClient(options []mqtt.Option, server string) (client mqtt.Client, err error) {
 
 	allOpts := append([]mqtt.Option{
-		mqtt.WithPubHandleFunc(utils.PubHandler),
-		mqtt.WithConnHandleFunc(utils.ConnHandler),
-		mqtt.WithUnsubHandleFunc(utils.UnSubHandler),
-		mqtt.WithNetHandleFunc(utils.NetHandlerWithReconnect),
-		mqtt.WithSubHandleFunc(utils.SubHandler),
+		// 处理up message 异常情况
+		mqtt.WithPubHandleFunc(PubHandler),
+		mqtt.WithReceiveHandleFunc(ReceiveHandler),
+		mqtt.WithConnHandleFunc(ConnHandler),
+		mqtt.WithUnsubHandleFunc(UnSubHandler),
+		mqtt.WithNetHandleFunc(NetHandlerWithReconnect),
+		mqtt.WithSubHandleFunc(SubHandler),
 		mqtt.WithRouter(mqtt.NewRegexRouter()),
 		// 支持连接失败，自动重连
 		mqtt.WithAutoReconnect(true),

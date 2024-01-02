@@ -34,7 +34,7 @@ func ConnHandler(client mqtt.Client, server string, code byte, err error) {
 	fmt.Printf(domain.LineStart)
 }
 
-func PubHandler(client mqtt.Client, topic string, err error) {
+func PubHandler(client mqtt.Client, topic string, msg string, err error) {
 	if err != nil {
 		fmt.Println("\npub", topic, "failed, error =", err)
 	} else {

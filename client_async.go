@@ -63,6 +63,7 @@ type AsyncClient struct {
 
 	// success/error handlers
 	pubHandler     PubHandleFunc
+	receiveHandler ReceiveHandleFunc
 	subHandler     SubHandleFunc
 	unsubHandler   UnsubHandleFunc
 	netHandler     NetHandleFunc

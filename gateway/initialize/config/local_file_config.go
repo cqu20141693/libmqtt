@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/goiiot/libmqtt/cmd/initialize/logger/cclog"
+	"github.com/goiiot/libmqtt/gateway/initialize/logger/cclog"
 	"github.com/spf13/viper"
 )
 
@@ -17,6 +17,7 @@ func init() {
 	}
 	//event.TriggerEvent(event.LocalConfigComplete)
 }
+
 func ReadLocalConfig(path string) {
 	// 读取本地配置，支持相对路径
 	Viper.SetConfigFile(path)
