@@ -7,21 +7,6 @@ import (
 	"os"
 )
 
-var SugarLogger *zap.SugaredLogger
-
-func InitLogger() {
-
-	productionConfig := zap.NewProductionConfig()
-	config := zap.NewProductionEncoderConfig()
-	config.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
-	productionConfig.EncoderConfig = config
-	logger, err := productionConfig.Build()
-	if err != nil {
-		return
-	}
-	SugarLogger = logger.Sugar()
-}
-
 func getEncoder() zapcore.Encoder {
 	productionConfig := zap.NewProductionConfig()
 	config := zap.NewProductionEncoderConfig()

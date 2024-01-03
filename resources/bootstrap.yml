@@ -1,0 +1,18 @@
+gateway:
+  healthCheck:
+    enabled: true
+    reportInterval: 1000
+  platform:
+    host: localhost
+    keepAlive: 30
+    maxSize: 65537
+    minReconnectDelay: 1
+    port: 1883
+    qos: 0
+    username: witeam
+    clientId: witeamG1
+    password: witeam@123
+  isUpdate: false
+  restPort: 28883
+  autoConnect: true
+  version: 3.21.0

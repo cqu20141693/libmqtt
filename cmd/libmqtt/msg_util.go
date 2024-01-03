@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/binary"
 	mqtt "github.com/goiiot/libmqtt"
-	"github.com/goiiot/libmqtt/cmd/domain"
+	"github.com/goiiot/libmqtt/domain"
 	"math"
 	"strconv"
 )
@@ -19,7 +19,7 @@ func CreateSinglePubMsg(qos byte, topicName, payload string) []*mqtt.PublishPack
 }
 
 /*
-	根据编码类型序列化字节数组
+根据编码类型序列化字节数组
 */
 func getBytes(encodeType, dataStr string) (bytes []byte, err error) {
 	switch encodeType {

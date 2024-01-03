@@ -13,6 +13,11 @@ type MqttClientAddInfo struct {
 	Keepalive  int64               `form:"keepalive" json:"keepalive" xml:"keepalive" binding:"required"`
 	MockPolicy []PublishMockPolicy `form:"mockPolicy" json:"mockPolicy" xml:"mockPolicy"`
 }
+
+func NewMqttClientAddInfo(address string, clientID string, username string, password string, keepalive int64) *MqttClientAddInfo {
+	return &MqttClientAddInfo{Address: address, ClientID: clientID, Username: username, Password: password, Keepalive: keepalive}
+}
+
 type PublishMockPolicy struct {
 	Enable bool   `form:"enable" json:"enable" xml:"enable" binding:"required"`
 	Topic  string `form:"topic" json:"topic" xml:"topic" binding:"required"`
@@ -98,3 +103,4 @@ func NewGClientInfo(server string, clientID string, username string, password st
 }
 
 var ClientMaps = make(map[string]*GClientInfo, 8)
+var PlatformClientMaps = make(map[string]*GClientInfo, 8)

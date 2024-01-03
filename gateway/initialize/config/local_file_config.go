@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var err error
 var Viper = viper.New()
 
 func init() {
@@ -26,7 +25,7 @@ func ReadLocalConfig(path string) {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			cclog.Debug("Config file not found; ignore error if desired")
 		} else {
-			cclog.Info("Config file was found but another error was produced")
+			cclog.Info("Config file was found but another error was produced. ", err)
 		}
 	}
 }

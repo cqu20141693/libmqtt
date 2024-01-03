@@ -5,16 +5,41 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
-	"os"
 	"time"
 )
 
 var logs = map[string]Writer{"console": getConsoleWriter()}
 var console Writer
 
+var SugarLogger *zap.SugaredLogger
+
+func init() {
+
+	logger, done := getLogger()
+	if done {
+		return
+	}
+	SugarLogger = logger.Sugar()
+}
+
+func getLogger() (*zap.Logger, bool) {
+	productionConfig := zap.NewProductionConfig()
+	config := zap.NewProductionEncoderConfig()
+	config.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	productionConfig.EncoderConfig = config
+	logger, err := productionConfig.Build()
+	if err != nil {
+		return nil, true
+	}
+	return logger, false
+}
+
 func getConsoleWriter() Writer {
-	//stdout := newLogger(os.Stdout, zapcore.InfoLevel)
-	console = NewCCLogWriter(NewProductionLogger(os.Stdout))
+	logger, done := getLogger()
+	if done {
+		return nil
+	}
+	console = NewCCLogWriter(logger)
 	return console
 }
 func newLogger(w io.Writer, level zapcore.Level) *zap.Logger {

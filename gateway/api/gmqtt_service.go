@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-co-op/gocron"
-	libmqtt "github.com/goiiot/libmqtt"
-	"github.com/goiiot/libmqtt/cmd/domain"
 	"github.com/goiiot/libmqtt/cmd/utils"
+	"github.com/goiiot/libmqtt/domain"
+	"github.com/goiiot/libmqtt/gateway/initialize/logger/cclog"
 	"github.com/goiiot/libmqtt/gateway/mqtt"
 	"net/http"
 	"time"
@@ -20,7 +20,7 @@ func StartMock(rg *gin.RouterGroup) {
 		if exist {
 			info := domain.ClientMaps[clientId]
 			if info != nil {
-				SugarLogger.Info("start mock %v", info)
+				cclog.SugarLogger.Info("start mock %v", info)
 				for _, policy := range info.MockPolicy {
 					policy.Enable = true
 				}
@@ -49,11 +49,11 @@ func UpdateMock(rg *gin.RouterGroup) {
 		if exist {
 			info := domain.ClientMaps[clientId]
 			if info != nil {
-				SugarLogger.Info("update mock %v", clientId)
+				cclog.SugarLogger.Info("update mock %v", clientId)
 				var policies []domain.PublishMockPolicy
 				err := c.BindJSON(&policies)
 				if err != nil {
-					SugarLogger.Error(err)
+					cclog.SugarLogger.Error(err)
 					c.JSON(http.StatusBadRequest, "parameter error")
 					return
 				}
@@ -102,7 +102,7 @@ func ReconnectClient(rg *gin.RouterGroup) {
 				if !info.Connected {
 					err := info.Client.ReconnectServer(info.Server)
 					if err != nil {
-						SugarLogger.Error(err)
+						cclog.SugarLogger.Error(err)
 						c.JSON(http.StatusOK, fmt.Sprintf("reconnect failed %v", err))
 						return
 					}
@@ -132,7 +132,7 @@ func PublishMsg(rg *gin.RouterGroup) {
 			var infos []PublishInfo
 			err := c.BindJSON(&infos)
 			if err != nil {
-				SugarLogger.Error(err)
+				cclog.SugarLogger.Error(err)
 				c.JSON(http.StatusBadRequest, "请求参数错误")
 				return
 			}
@@ -140,7 +140,7 @@ func PublishMsg(rg *gin.RouterGroup) {
 				for i := range infos {
 					msg, err := json.Marshal(infos[i].Message)
 					if err != nil {
-						SugarLogger.Error(err)
+						cclog.SugarLogger.Error(err)
 						continue
 					}
 					message := string(msg)
@@ -160,20 +160,14 @@ func CreateClientRoutes(rg *gin.RouterGroup) {
 		var info domain.MqttClientAddInfo
 		err := c.BindJSON(&info)
 		if err != nil {
-			SugarLogger.Error(err)
+			cclog.SugarLogger.Error(err)
 			c.JSON(http.StatusBadRequest, "请求参数错误")
 			return
 		}
-		SugarLogger.Info(info)
-		options := make([]libmqtt.Option, 0)
-		options = append(options, libmqtt.WithCleanSession(true))
-		options = append(options, libmqtt.WithClientID(info.ClientID))
-		options = append(options, libmqtt.WithIdentity(info.Username, info.Password))
-		options = append(options, libmqtt.WithKeepalive(uint16(info.Keepalive), 1.2))
-		options = append(options, libmqtt.WithVersion(libmqtt.V311, false))
-		client, err := mqtt.NewClient(options, info.Address)
+		cclog.SugarLogger.Info(info)
+		client, err := mqtt.CreatClient(&info)
 		if err != nil {
-			SugarLogger.Error(err)
+			cclog.SugarLogger.Error(err)
 			c.JSON(http.StatusInternalServerError, "libmqtt 连接失败")
 			return
 		}
@@ -201,7 +195,7 @@ func startMock(clientInfo *domain.GClientInfo) bool {
 
 				})
 				if err != nil {
-					SugarLogger.Error(err)
+					cclog.SugarLogger.Error(err)
 					return true
 				}
 				scheduler.StartAsync()

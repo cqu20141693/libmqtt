@@ -19,7 +19,7 @@ package utils
 import (
 	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
-	"github.com/goiiot/libmqtt/cmd/domain"
+	"github.com/goiiot/libmqtt/domain"
 	"regexp"
 )
 
