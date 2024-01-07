@@ -1,0 +1,455 @@
+{
+  "channel": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "connection": {
+          "type": "object",
+          "x-validator": [],
+          "name": "connection",
+          "title": "基本配置",
+          "x-designable-id": "tyh2881v6m7",
+          "x-index": 0,
+          "properties": {
+            "host": {
+              "type": "string",
+              "title": "IP地址",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [
+                {
+                  "whitespace": true,
+                  "required": true,
+                  "pattern": "((25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))\\.){3}(25[0-5]|2[0-4]\\d|((1\\d{2})|([1-9]?\\d)))"
+                }
+              ],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "description": "",
+              "x-designable-id": "1kju631iwqt",
+              "x-index": 0,
+              "required": true,
+              "name": "host"
+            },
+            "port": {
+              "type": "number",
+              "title": "端口",
+              "x-decorator": "FormItem",
+              "x-component": "NumberPicker",
+              "x-validator": "integer",
+              "x-component-props": {
+                "min": 1
+              },
+              "x-decorator-props": {},
+              "required": true,
+              "x-designable-id": "0lpzxebqled",
+              "x-index": 1,
+              "name": "port",
+              "default": 1883
+            },
+            "topicFilter": {
+              "type": "string",
+              "title": "Topic",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [
+              ],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "description": "",
+              "x-designable-id": "v278tylcyn6",
+              "x-index": 2,
+              "required": true,
+              "name": "topicFilter"
+            },
+            "identity": {
+              "type": "object",
+              "x-validator": [],
+              "name": "identity",
+              "x-designable-id": "d6agc9ls8ch",
+              "x-index": 3,
+              "properties": {
+                "type": {
+                  "title": "认证信息",
+                  "x-decorator": "FormItem",
+                  "x-component": "Select",
+                  "x-validator": [],
+                  "x-component-props": {},
+                  "x-decorator-props": {},
+                  "name": "type",
+                  "required": true,
+                  "enum": [
+                    {
+                      "children": [],
+                      "label": "Anonymous",
+                      "value": "Anonymous"
+                    },
+                    {
+                      "children": [],
+                      "label": "UserName",
+                      "value": "UserName"
+                    }
+                  ],
+                  "default": "Anonymous",
+                  "x-designable-id": "dp6ys1v7b1c",
+                  "x-index": 0
+                },
+                "username": {
+                  "type": "string",
+                  "title": "用户名",
+                  "x-decorator": "FormItem",
+                  "x-component": "Input",
+                  "x-validator": [],
+                  "x-component-props": {},
+                  "x-decorator-props": {},
+                  "name": "username",
+                  "x-reactions": {
+                    "dependencies": [
+                      {
+                        "property": "value",
+                        "type": "any",
+                        "source": "connection.identity.type",
+                        "name": "type"
+                      }
+                    ],
+                    "fulfill": {
+                      "state": {
+                        "visible": "{{$deps.type == 'UserName'}}"
+                      }
+                    }
+                  },
+                  "x-designable-id": "74kci5vg5u4",
+                  "x-index": 1,
+                  "required": true
+                },
+                "password": {
+                  "title": "密码",
+                  "x-decorator": "FormItem",
+                  "x-component": "Password",
+                  "x-validator": [],
+                  "x-component-props": {},
+                  "x-decorator-props": {},
+                  "name": "password",
+                  "x-reactions": {
+                    "dependencies": [
+                      {
+                        "property": "value",
+                        "type": "any",
+                        "source": "connection.identity.type",
+                        "name": "type"
+                      }
+                    ],
+                    "fulfill": {
+                      "state": {
+                        "visible": "{{$deps.type == 'UserName'}}"
+                      }
+                    }
+                  },
+                  "x-designable-id": "s16b8i358b2",
+                  "x-index": 2,
+                  "required": true
+                }
+              }
+            }
+          }
+        },
+        "report": {
+          "type": "object",
+          "x-validator": [],
+          "name": "report",
+          "title": "上报配置",
+          "x-designable-id": "r6cd0d4bvw8",
+          "x-index": 1,
+          "properties": {
+            "type": {
+              "type": "string | number",
+              "title": "扫描模式",
+              "x-decorator": "FormItem",
+              "x-component": "Radio.Group",
+              "enum": [
+                {
+                  "children": [],
+                  "label": "单频",
+                  "value": "single"
+                },
+                {
+                  "children": [],
+                  "label": "多频",
+                  "value": "multi"
+                }
+              ],
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "required": true,
+              "default": "single",
+              "x-designable-id": "agz643hbrxg",
+              "x-index": 0,
+              "name": "type",
+              "x-pattern": "disabled"
+            },
+            "sendDataOnlyOnChange": {
+              "type": "string | number",
+              "title": "上报模式",
+              "x-decorator": "FormItem",
+              "x-component": "Radio.Group",
+              "enum": [
+                {
+                  "children": [],
+                  "label": "扫描上报",
+                  "value": false
+                },
+                {
+                  "children": [],
+                  "label": "变化上报",
+                  "value": true
+                }
+              ],
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "required": true,
+              "default": false,
+              "x-designable-id": "gdtxan5r7fn",
+              "x-index": 1,
+              "name": "sendDataOnlyOnChange",
+              "description": "扫描上报:每次扫描都会上报数据；\n变化上报:数据发生变化才进行数据上报"
+            }
+          }
+        }
+      },
+      "x-designable-id": "um9ztsqttn0"
+    }
+  },
+  "device": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "canExport": false,
+      "type": "object",
+      "properties": {
+        "sendDataOnlyOnChange": {
+          "type": "string | number",
+          "title": "上报模式",
+          "x-decorator": "FormItem",
+          "x-component": "Radio.Group",
+          "enum": [
+            {
+              "children": [],
+              "label": "扫描上报",
+              "value": false
+            },
+            {
+              "children": [],
+              "label": "变化上报",
+              "value": true
+            }
+          ],
+          "x-validator": [],
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "required": true,
+          "default": false,
+          "x-designable-id": "gdtxan5r7fn",
+          "x-index": 0,
+          "name": "sendDataOnlyOnChange",
+          "description": "扫描上报:每次扫描都会上报数据；\n变化上报:数据发生变化才进行数据上报"
+        },
+        "extension": {
+          "type": "object",
+          "x-validator": [],
+          "name": "extension",
+          "x-designable-id": "gecji4p27ff",
+          "x-index": 1,
+          "properties": {
+            "deviceModelId": {
+              "show_table": false,
+              "type": "string",
+              "title": "设备ID映射",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "name": "deviceModelId",
+              "required": true,
+              "x-designable-id": "rlcrqe00oe4",
+              "x-index": 0,
+              "description": "固定值用 ''引用，例如 '测试设备'，直接填写引用数据列结果"
+            },
+            "deviceModelName": {
+              "show_table": false,
+              "type": "string",
+              "title": "设备名称映射",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "name": "deviceModelName",
+              "required": true,
+              "x-designable-id": "d1vp16458g6",
+              "x-index": 1,
+              "description": "固定值用 ''引用，例如 '测试设备'，直接填写引用数据列结果"
+            },
+            "deviceModelType": {
+              "show_table": false,
+              "type": "string",
+              "title": "产品ID映射",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "name": "deviceModelType",
+              "required": true,
+              "x-designable-id": "d1vp16458g6",
+              "x-index": 2,
+              "description": "固定值用 ''引用，例如 '测试设备'，直接填写引用数据列结果"
+            }
+          }
+        }
+      },
+      "x-designable-id": "kb466163s3o"
+    }
+  },
+  "tag": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "canExport": false,
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "title": "点位标识",
+          "x-decorator": "FormItem",
+          "x-component": "Input",
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "description": "",
+          "x-designable-id": "1kju631iwqt",
+          "x-index": 0,
+          "required": true,
+          "name": "tag",
+          "x-validator": [
+            {
+              "triggerType": "onInput",
+              "message": "只能输入1-64位英文、数字、下划线、中划线",
+              "pattern": "^[0-9a-zA-Z_-]{1,64}$"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "title": "点位名称",
+          "x-decorator": "FormItem",
+          "x-component": "Input",
+          "x-validator": [],
+          "x-component-props": {
+            "maxLength": 20
+          },
+          "x-decorator-props": {},
+          "name": "name",
+          "required": true,
+          "x-designable-id": "nnlhbmdfhem",
+          "x-index": 1
+        },
+        "tag_type": {
+          "type": "string | number",
+          "title": "点位类型",
+          "x-decorator": "FormItem",
+          "x-component": "Radio.Group",
+          "enum": [
+            {
+              "children": [],
+              "label": "时序映射",
+              "value": "timeseries"
+            },
+            {
+              "children": [],
+              "label": "属性映射",
+              "value": "attributes"
+            }
+          ],
+          "x-validator": [],
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "required": true,
+          "default": "timeseries",
+          "x-designable-id": "agz643hbrxg",
+          "x-index": 2,
+          "name": "tag_type",
+          "x-pattern": "disabled"
+        },
+        "sendDataOnlyOnChange": {
+          "type": "string | number",
+          "title": "上报模式",
+          "x-decorator": "FormItem",
+          "x-component": "Radio.Group",
+          "enum": [
+            {
+              "children": [],
+              "label": "扫描上报",
+              "value": false
+            },
+            {
+              "children": [],
+              "label": "变化上报",
+              "value": true
+            }
+          ],
+          "x-validator": [],
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "required": true,
+          "default": false,
+          "x-designable-id": "gdtxan5r7fn",
+          "x-index": 3,
+          "name": "sendDataOnlyOnChange",
+          "description": "扫描上报:每次扫描都会上报数据；\n变化上报:数据发生变化才进行数据上报"
+        },
+        "extension": {
+          "type": "object",
+          "x-validator": [],
+          "name": "extension",
+          "title": "",
+          "x-designable-id": "2lkuptzi7j5",
+          "properties": {
+            "value": {
+              "type": "string",
+              "title": "点位匹配",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [],
+              "x-component-props": {
+                "maxLength": 20
+              },
+              "x-decorator-props": {},
+              "name": "value",
+              "required": true,
+              "x-designable-id": "98j1mab1afa",
+              "x-index": 0,
+              "description": "该字段为模板设备配置，不作上报处理"
+            }
+          },
+          "x-index": 4
+        }
+      },
+      "x-designable-id": "um9ztsqttn0"
+    }
+  },
+  "driver": [
+    "MQTT"
+  ],
+  "driverType": [
+    {"name": "MQTT", "type": "General", "brand": ""}
+  ]}

@@ -103,4 +103,3 @@ func NewGClientInfo(server string, clientID string, username string, password st
 }
 
 var ClientMaps = make(map[string]*GClientInfo, 8)
-var PlatformClientMaps = make(map[string]*GClientInfo, 8)

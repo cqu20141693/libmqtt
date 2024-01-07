@@ -3,6 +3,7 @@ gateway:
     enabled: true
     reportInterval: 1000
   platform:
+    type: GEEGA
     host: localhost
     keepAlive: 30
     maxSize: 65537

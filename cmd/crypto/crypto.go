@@ -3,6 +3,8 @@ package crypto
 import (
 	"bytes"
 	"crypto/cipher"
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/tjfoc/gmsm/sm4"
@@ -16,7 +18,7 @@ func DoSM4Decrypt(data, key, iv []byte) (plaintText []byte, err error) {
 	return sm4Decrypt(data, key, iv)
 }
 
-//明文数据填充
+// 明文数据填充
 // pkcs5填充
 func pkcs5Padding(src []byte, blockSize int) []byte {
 	padding := blockSize - len(src)%blockSize
@@ -24,7 +26,7 @@ func pkcs5Padding(src []byte, blockSize int) []byte {
 	return append(src, padtext...)
 }
 
-//去掉明文后面的填充数据
+// 去掉明文后面的填充数据
 func unpaddingLastGroup(plainText []byte) []byte {
 	//1.拿到切片中的最后一个字节
 	length := len(plainText)
@@ -69,4 +71,11 @@ func sm4Decrypt(cipherText, key, iv []byte) (plainText []byte, err error) {
 	blockMode.CryptBlocks(plainText, cipherText)
 	plainText = unpaddingLastGroup(plainText)
 	return
+}
+
+func MD5(v string) string {
+	d := []byte(v)
+	m := md5.New()
+	m.Write(d)
+	return hex.EncodeToString(m.Sum(nil))
 }

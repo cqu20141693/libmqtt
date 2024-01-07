@@ -1,0 +1,878 @@
+{
+  "channel": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "connection": {
+          "type": "object",
+          "x-validator": [],
+          "name": "connection",
+          "title": "基本配置",
+          "x-designable-id": "tyh2881v6m7",
+          "x-index": 0,
+          "properties": {
+            "name": {
+              "type": "string",
+              "title": "模拟器名字",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "name": "name",
+              "description": "",
+              "default": "模拟器",
+              "required": true,
+              "x-designable-id": "1v9w1dxrrfw",
+              "x-index": 0
+            }
+          }
+        },
+        "report": {
+          "type": "object",
+          "x-validator": [],
+          "name": "report",
+          "title": "上报配置",
+          "x-designable-id": "r6cd0d4bvw8",
+          "x-index": 1,
+          "properties": {
+            "type": {
+              "type": "string | number",
+              "title": "扫描模式",
+              "x-decorator": "FormItem",
+              "x-component": "Radio.Group",
+              "enum": [
+                {
+                  "children": [],
+                  "label": "单频",
+                  "value": "single"
+                },
+                {
+                  "children": [],
+                  "label": "多频",
+                  "value": "multi"
+                }
+              ],
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "required": true,
+              "default": "single",
+              "x-designable-id": "agz643hbrxg",
+              "x-index": 0,
+              "name": "type"
+            },
+            "scanPeriodInMillis": {
+              "type": "number",
+              "title": "扫描频率(ms)",
+              "x-decorator": "FormItem",
+              "x-component": "NumberPicker",
+              "x-validator": "integer",
+              "x-component-props": {
+                "min": 1
+              },
+              "x-decorator-props": {},
+              "required": true,
+              "description": "",
+              "default": 5000,
+              "x-designable-id": "j3xc5vapnij",
+              "x-index": 1,
+              "name": "scanPeriodInMillis"
+            },
+            "sendDataOnlyOnChange": {
+              "type": "string | number",
+              "title": "上报模式",
+              "x-decorator": "FormItem",
+              "x-component": "Radio.Group",
+              "enum": [
+                {
+                  "children": [],
+                  "label": "扫描上报",
+                  "value": false
+                },
+                {
+                  "children": [],
+                  "label": "变化上报",
+                  "value": true
+                }
+              ],
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "required": true,
+              "default": false,
+              "x-designable-id": "gdtxan5r7fn",
+              "x-index": 2,
+              "name": "sendDataOnlyOnChange",
+              "description": "扫描上报:每次扫描都会上报数据；\n变化上报:数据发生变化才进行数据上报"
+            }
+          }
+        }
+      },
+      "x-designable-id": "yzbjurnbhfm"
+    }
+  },
+  "device": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "sendDataOnlyOnChange": {
+          "type": "string | number",
+          "title": "上报模式",
+          "x-decorator": "FormItem",
+          "x-component": "Radio.Group",
+          "enum": [
+            {
+              "children": [],
+              "label": "扫描上报",
+              "value": false
+            },
+            {
+              "children": [],
+              "label": "变化上报",
+              "value": true
+            }
+          ],
+          "x-validator": [],
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "required": true,
+          "default": false,
+          "x-designable-id": "gdtxan5r7fn",
+          "x-index": 0,
+          "name": "sendDataOnlyOnChange",
+          "description": "扫描上报:每次扫描都会上报数据；\n变化上报:数据发生变化才进行数据上报"
+        }
+      },
+      "x-designable-id": "kb466163s3o"
+    }
+  },
+  "tag": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "title": "点位标识",
+          "x-decorator": "FormItem",
+          "x-component": "Input",
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "description": "",
+          "x-designable-id": "1kju631iwqt",
+          "x-index": 0,
+          "required": true,
+          "name": "tag",
+          "x-validator": [
+            {
+              "triggerType": "onInput",
+              "message": "只能输入1-64位英文、数字、下划线、中划线",
+              "pattern": "^[0-9a-zA-Z_-]{1,64}$"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "title": "点位名称",
+          "x-decorator": "FormItem",
+          "x-component": "Input",
+          "x-validator": [],
+          "x-component-props": {
+            "maxLength": 20
+          },
+          "x-decorator-props": {},
+          "name": "name",
+          "x-designable-id": "63pj8s8jxl8",
+          "x-index": 1,
+          "required": true
+        },
+        "tag_type": {
+          "type": "string | number",
+          "title": "点位类型",
+          "x-decorator": "FormItem",
+          "x-component": "Radio.Group",
+          "enum": [
+            {
+              "children": [],
+              "label": "时序映射",
+              "value": "timeseries"
+            },
+            {
+              "children": [],
+              "label": "属性映射",
+              "value": "attributes"
+            }
+          ],
+          "x-validator": [],
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "required": true,
+          "default": "timeseries",
+          "x-designable-id": "agz643hbrxg",
+          "x-index": 2,
+          "name": "tag_type"
+        },
+        "readOnly": {
+          "type": "string | number",
+          "title": "读写类型",
+          "x-decorator": "FormItem",
+          "x-component": "Radio.Group",
+          "enum": [
+            {
+              "children": [],
+              "label": "只读",
+              "value": true
+            },
+            {
+              "children": [],
+              "label": "读写",
+              "value": false
+            }
+          ],
+          "x-validator": [],
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "required": true,
+          "default": true,
+          "x-designable-id": "gdtxan5r7fn",
+          "x-index": 3,
+          "name": "readOnly",
+          "x-reactions": {
+            "dependencies": [
+              {
+                "property": "value",
+                "type": "any",
+                "source": "tag_type",
+                "name": "tag_type"
+              }
+            ],
+            "fulfill": {
+              "state": {
+                "pattern": "{{$deps.VariableName !== 'timeseries' ? 'editable' : 'readOnly'}}",
+                "visible": "{{$deps.tag_type == 'attributes'}}"
+              }
+            }
+          }
+        },
+        "scanPeriodInMillis": {
+          "type": "number",
+          "title": "扫描频率(ms)",
+          "x-decorator": "FormItem",
+          "x-component": "NumberPicker",
+          "x-validator": "integer",
+          "x-component-props": {
+            "min": 1
+          },
+          "x-decorator-props": {},
+          "required": true,
+          "description": "",
+          "default": 5000,
+          "x-designable-id": "j3xc5vapnij",
+          "x-index": 4,
+          "name": "scanPeriodInMillis"
+        },
+        "sendDataOnlyOnChange": {
+          "type": "string | number",
+          "title": "上报模式",
+          "x-decorator": "FormItem",
+          "x-component": "Radio.Group",
+          "enum": [
+            {
+              "children": [],
+              "label": "扫描上报",
+              "value": false
+            },
+            {
+              "children": [],
+              "label": "变化上报",
+              "value": true
+            }
+          ],
+          "x-validator": [],
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "required": true,
+          "default": false,
+          "x-designable-id": "gdtxan5r7fn",
+          "x-index": 5,
+          "name": "sendDataOnlyOnChange",
+          "description": "扫描上报:每次扫描都会上报数据；\n变化上报:数据发生变化才进行数据上报"
+        },
+        "extension": {
+          "type": "object",
+          "x-validator": [],
+          "name": "extension",
+          "x-designable-id": "zrc1efje3ex",
+          "x-index": 6,
+          "properties": {
+            "address": {
+              "title": "寄存器类型",
+              "x-decorator": "FormItem",
+              "x-component": "Select",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "name": "address",
+              "enum": [
+                {
+                  "children": [],
+                  "label": "静态",
+                  "value": "Static"
+                },
+                {
+                  "children": [],
+                  "label": "随机",
+                  "value": "Random"
+                },
+                {
+                  "children": [],
+                  "label": "自增",
+                  "value": "Increment"
+                },
+                {
+                  "children": [],
+                  "label": "枚举",
+                  "value": "Enum"
+                },
+                {
+                  "children": [],
+                  "label": "JsonArray",
+                  "value": "JsonArray"
+                },
+                {
+                  "children": [],
+                  "label": "高级",
+                  "value": "Faker"
+                }
+              ],
+              "default": "Static",
+              "required": true,
+              "x-designable-id": "jr8gw0rgf90",
+              "x-index": 0
+            },
+            "fake": {
+              "show_table": false,
+              "title": "模拟类型",
+              "x-decorator": "FormItem",
+              "x-component": "Select",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "name": "fake",
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Faker\"}}"
+                  }
+                }
+              },
+              "enum": [
+                {
+                  "children": [],
+                  "label": "名字",
+                  "value": "name"
+                },
+                {
+                  "children": [],
+                  "label": "地址",
+                  "value": "address"
+                },
+                {
+                  "children": [],
+                  "label": "身份证",
+                  "value": "ssn"
+                },
+                {
+                  "children": [],
+                  "label": "邮箱",
+                  "value": "email"
+                },
+                {
+                  "children": [],
+                  "label": "手机号",
+                  "value": "phone_number"
+                },
+                {
+                  "children": [],
+                  "label": "Date",
+                  "value": "date"
+                },
+                {
+                  "children": [],
+                  "label": "DateTime",
+                  "value": "date_time"
+                },
+                {
+                  "children": [],
+                  "label": "UnixTime",
+                  "value": "unix_time"
+                },
+                {
+                  "children": [],
+                  "label": "RealTime",
+                  "value": "real_time"
+                }
+              ],
+              "x-designable-id": "wffberfjhcj",
+              "x-index": 1
+            },
+            "type": {
+              "show_table": false,
+              "title": "数据类型",
+              "x-decorator": "FormItem",
+              "x-component": "Select",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "required": true,
+              "name": "type",
+              "enum": [
+                {
+                  "children": [],
+                  "label": "bool",
+                  "value": "bool"
+                },
+                {
+                  "children": [],
+                  "label": "int",
+                  "value": "int"
+                },
+                {
+                  "children": [],
+                  "label": "long",
+                  "value": "long"
+                },
+                {
+                  "children": [],
+                  "label": "float",
+                  "value": "float"
+                },
+                {
+                  "children": [],
+                  "label": "string",
+                  "value": "string"
+                }
+              ],
+              "x-designable-id": "rkfbdbmtse3",
+              "x-index": 2,
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Static\" || $deps.address == \"Random\"}}"
+                  }
+                }
+              }
+            },
+            "min": {
+              "show_table": false,
+              "type": "number",
+              "title": "随机下限",
+              "x-decorator": "FormItem",
+              "x-component": "NumberPicker",
+              "x-validator": [],
+              "x-component-props": {
+                "min": -9223372036854776000,
+                "max": 9223372036854776000
+              },
+              "x-decorator-props": {},
+              "name": "min",
+              "required": true,
+              "default": 0,
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  },
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.type",
+                    "name": "type"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Random\" && ($deps.type ==\"int\" || $deps.type ==\"long\" || $deps.type ==\"float\" ) }}"
+                  }
+                }
+              },
+              "x-designable-id": "e3hn428n0kg",
+              "x-index": 3
+            },
+            "min_increment": {
+              "show_table": false,
+              "type": "number",
+              "title": "最小值",
+              "x-decorator": "FormItem",
+              "x-component": "NumberPicker",
+              "x-validator": [],
+              "x-component-props": {
+                "min": -9223372036854776000,
+                "max": 9223372036854776000
+              },
+              "x-decorator-props": {},
+              "name": "min_increment",
+              "required": true,
+              "default": 0,
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Increment\"}}"
+                  }
+                }
+              },
+              "x-designable-id": "p46kaurd6o8",
+              "x-index": 4
+            },
+            "max": {
+              "show_table": false,
+              "type": "number",
+              "title": "随机上限",
+              "x-decorator": "FormItem",
+              "x-component": "NumberPicker",
+              "x-validator": [],
+              "x-component-props": {
+                "max": 9223372036854776000,
+                "min": -9223372036854776000
+              },
+              "x-decorator-props": {},
+              "name": "max",
+              "required": true,
+              "default": 9999999,
+              "x-designable-id": "3xts1x3aw06",
+              "x-index": 5,
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  },
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.type",
+                    "name": "type"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Random\" && ($deps.type ==\"int\" || $deps.type ==\"long\" || $deps.type ==\"float\" ) }}"
+                  }
+                }
+              }
+            },
+            "max_increment": {
+              "show_table": false,
+              "type": "number",
+              "title": "最大值",
+              "x-decorator": "FormItem",
+              "x-component": "NumberPicker",
+              "x-validator": [],
+              "x-component-props": {
+                "max": 9223372036854776000,
+                "min": -9223372036854776000
+              },
+              "x-decorator-props": {},
+              "name": "max_increment",
+              "required": true,
+              "default": 9999999,
+              "x-designable-id": "npfal5kpr3j",
+              "x-index": 6,
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Increment\"}}"
+                  }
+                }
+              }
+            },
+            "step_increment": {
+              "show_table": false,
+              "type": "number",
+              "title": "自增步长",
+              "x-decorator": "FormItem",
+              "x-component": "NumberPicker",
+              "x-validator": [],
+              "x-component-props": {
+                "max": 9223372036854776000,
+                "min": -9223372036854776000
+              },
+              "x-decorator-props": {},
+              "name": "step_increment",
+              "required": true,
+              "default": 1,
+              "x-designable-id": "70ku7qpykgu",
+              "x-index": 7,
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Increment\"}}"
+                  }
+                }
+              }
+            },
+            "default": {
+              "show_table": false,
+              "type": "string",
+              "title": "默认值",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-validator": [],
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "name": "default",
+              "x-designable-id": "wa1jptub1f1",
+              "x-index": 8,
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Static\"}}"
+                  }
+                }
+              }
+            },
+            "enum": {
+              "type": "string",
+              "title": "枚举值",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "description": "用,进行分割.例如: 开启,停止,暂停",
+              "x-designable-id": "1kju631iwqt",
+              "x-index": 9,
+              "required": true,
+              "name": "enum",
+              "x-validator": [],
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"Enum\"}}"
+                  }
+                }
+              }
+            },
+            "json_array": {
+              "type": "string",
+              "title": "JsonArray",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "description": "使用Json数组进行定义，依次上报数组中的元素",
+              "x-designable-id": "1kju631iwqt",
+              "x-index": 10,
+              "required": true,
+              "name": "json_array",
+              "x-validator": [],
+              "x-reactions": {
+                "dependencies": [
+                  {
+                    "property": "value",
+                    "type": "any",
+                    "source": "extension.address",
+                    "name": "address"
+                  }
+                ],
+                "fulfill": {
+                  "state": {
+                    "visible": "{{$deps.address == \"JsonArray\"}}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "x-designable-id": "e53hc1ulz5f"
+    }
+  },
+  "function": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "title": "功能标识",
+          "x-decorator": "FormItem",
+          "x-component": "Input",
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "description": "",
+          "x-designable-id": "1kju631iwqt",
+          "x-index": 0,
+          "required": true,
+          "name": "method",
+          "x-validator": [
+            {
+              "triggerType": "onInput",
+              "message": "只能输入1-64位英文、数字、下划线、中划线",
+              "pattern": "^[0-9a-zA-Z_-]{1,64}$"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "title": "功能名称",
+          "x-decorator": "FormItem",
+          "x-component": "Input",
+          "x-validator": [],
+          "x-component-props": {
+            "maxLength": 20
+          },
+          "x-decorator-props": {},
+          "name": "name",
+          "x-designable-id": "63pj8s8jxl8",
+          "x-index": 1,
+          "required": true
+        },
+        "extension": {
+          "type": "object",
+          "x-validator": [],
+          "name": "extension",
+          "x-designable-id": "zrc1efje3ex",
+          "x-index": 2,
+          "properties": {
+            "tag": {
+              "type": "string",
+              "title": "点位标识",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "description": "模拟器支持通过功能去修改点位数据",
+              "x-designable-id": "o9unm9sep6a",
+              "x-index": 0,
+              "required": true,
+              "name": "tag",
+              "x-validator": []
+            },
+            "args": {
+              "type": "string",
+              "title": "参数",
+              "x-decorator": "FormItem",
+              "x-component": "Input",
+              "x-component-props": {},
+              "x-decorator-props": {},
+              "description": "",
+              "x-designable-id": "dj9g0t1sv15",
+              "x-index": 1,
+              "required": true,
+              "name": "args",
+              "x-validator": []
+            }
+          }
+        }
+      },
+      "x-designable-id": "yzbjurnbhfm"
+    }
+  },
+  "functionExecution": {
+    "form": {
+      "labelCol": 6,
+      "wrapperCol": 12
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "arg": {
+          "type": "string",
+          "title": "执行参数",
+          "x-decorator": "FormItem",
+          "x-component": "Input",
+          "x-component-props": {},
+          "x-decorator-props": {},
+          "description": "不填写参数，使用创建时的默认参数执行",
+          "x-designable-id": "1kju631iwqt",
+          "x-index": 0,
+          "required": false,
+          "name": "arg",
+          "x-validator": []
+        }
+      },
+      "x-designable-id": "m8m0pyrnm95"
+    }
+  },
+  "driver": [
+    "Simulator"
+  ],
+  "driverType": [
+    {"name": "Simulator", "type": "General", "brand": ""}
+  ]}

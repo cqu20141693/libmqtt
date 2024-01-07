@@ -27,7 +27,7 @@ func TestNotifyMsg(t *testing.T) {
 	go func() {
 		notifyNetMsg(msgCh, "test srv", testErr)
 		notifyPersistMsg(msgCh, nil, testErr)
-		notifyPubMsg(msgCh, "test topic", testErr)
+		notifyPubMsg(msgCh, "test topic", "test msg", testErr)
 		notifySubMsg(msgCh, []*Topic{}, testErr)
 		notifyUnSubMsg(msgCh, []string{}, testErr)
 
