@@ -1,0 +1,114 @@
+{
+  "server": {
+    "channelId": "witam@1234567",
+    "connection": {
+      "name": "模拟器"
+    },
+    "devices": [
+      {
+        "attributes": [],
+        "attributesUpdates": [],
+        "channel_id": "2d33e8f6-aa9d-11ee-9866-52b43245811c",
+        "child": null,
+        "deviceId": "atuoDevice1",
+        "deviceName": "自动创建1",
+        "deviceType": "1744166454918696960",
+        "deviceTypeName": "自动创建产品",
+        "extension": {},
+        "functions": [
+          {
+            "channel_id": "2d33e8f6-aa9d-11ee-9866-52b43245811c",
+            "create_time": "2024-01-04 14:09:22",
+            "device_id": "65ec336a-aa9d-11ee-9866-52b43245811c",
+            "extension": {
+              "args": "a",
+              "tag": "a"
+            },
+            "method": "setA",
+            "name": "设备A点位",
+            "tag_group": null,
+            "tag_group_id": null,
+            "update_time": "2024-01-04 14:09:22"
+          }
+        ],
+        "id": "65ec336a-aa9d-11ee-9866-52b43245811c",
+        "sendDataOnlyOnChange": false,
+        "tags": [
+          {
+            "channel_id": "5750690f-a483-11ee-b8cf-c03c59469813",
+            "create_time": "2023-12-27 15:22:00",
+            "dataType": "Bool",
+            "device": null,
+            "device_id": "b3deebc9-a484-11ee-9843-c03c59469813",
+            "extension": {
+              "address": "Random"
+            },
+            "frequency": 5000,
+            "name": "a4",
+            "readOnly": true,
+            "readWrite": 1,
+            "sendDataOnlyOnChange": true,
+            "tagId": "a4",
+            "tagType": "attributes",
+            "tag_group": null,
+            "tag_group_id": null,
+            "update_time": "2023-12-27 15:22:00"
+          },
+          {
+            "channel_id": "5750690f-a483-11ee-b8cf-c03c59469813",
+            "create_time": "2023-12-27 15:22:41",
+            "dataType": "Integer",
+            "device": null,
+            "device_id": "b3deebc9-a484-11ee-9843-c03c59469813",
+            "extension": {
+              "address": "Random",
+              "max": 9999999,
+              "min": 0
+            },
+            "frequency": 5000,
+            "name": "b1",
+            "readOnly": true,
+            "readWrite": 1,
+            "sendDataOnlyOnChange": true,
+            "tagId": "b1",
+            "tagType": "attributes",
+            "tag_group": null,
+            "tag_group_id": null,
+            "update_time": "2023-12-27 15:22:41"
+          },
+          {
+            "channel_id": "2d33e8f6-aa9d-11ee-9866-52b43245811c",
+            "create_time": "2024-01-04 09:06:43",
+            "dataType": "Bool",
+            "device": null,
+            "device_id": "65ec336a-aa9d-11ee-9866-52b43245811c",
+            "extension": {
+              "address": "Static",
+              "default": "True"
+            },
+            "frequency": 5000,
+            "name": "点位A",
+            "readOnly": true,
+            "readWrite": 1,
+            "sendDataOnlyOnChange": false,
+            "tagId": "tagA",
+            "tagType": "timeseries",
+            "tag_group": null,
+            "tag_group_id": null,
+            "update_time": "2024-01-04 09:06:43"
+          }
+        ],
+        "timeseries": []
+      }
+    ],
+    "dynamic": false,
+    "extension": {},
+    "name": "模拟器-demo",
+    "report": {
+      "collectType": "channel",
+      "frequency": 60000,
+      "sendDataOnlyOnChange": true
+    },
+    "type": "Simulator"
+  }
+}
