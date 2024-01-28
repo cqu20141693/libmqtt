@@ -42,11 +42,17 @@ func StartServer(router *gin.Engine) {
 	cclog.Info("Server exiting")
 }
 
+// 用ctx初始化资源，mysql，redis等,内部服务也可以通过mainCtx初始化
+var MainCtx, mainStop = signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+
+// StartWithContextNotify
+//
+//	@param router
 func StartWithContextNotify(router *gin.Engine) {
 	// Create context that listens for the interrupt signal from the OS.
 	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
+
+	defer mainStop()
 
 	srv := &http.Server{
 		Addr:    DefaultAddr,
@@ -62,10 +68,10 @@ func StartWithContextNotify(router *gin.Engine) {
 	}()
 
 	// Listen for the interrupt signal.
-	<-ctx.Done()
+	<-MainCtx.Done()
 
 	// Restore default behavior on the interrupt signal and notify user of shutdown.
-	stop()
+	mainStop()
 	cclog.Info("shutting down gracefully, press Ctrl+C again to force")
 
 	// The context is used to inform the server it has 5 seconds to finish

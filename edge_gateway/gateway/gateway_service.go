@@ -125,6 +125,13 @@ func DispatchSouthEvent(receiver *GatewayService) {
 					})
 				case events.Telemetry:
 					platformClient.PublishTelemetry(platform.Telemetry{
+						Ts:         event.Ts,
+						EventTopic: event.EventTopic,
+						DeviceId:   event.DeviceId,
+						Data:       event.Data,
+					})
+				case events.Attribute:
+					platformClient.PublishTelemetry(platform.Telemetry{
 						EventTopic: event.EventTopic,
 						DeviceId:   event.DeviceId,
 						Data:       event.Data,

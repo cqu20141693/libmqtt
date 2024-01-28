@@ -263,6 +263,8 @@ type UpdateTagEvent struct {
 	TagValue map[string]interface{}
 }
 type ReadTagResult struct {
+	// 点位的时间戳
+	Ts       int64
 	DeviceId string
 	// Fails 读取失败点位
 	// tagId -> reason

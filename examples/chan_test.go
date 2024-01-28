@@ -8,8 +8,13 @@ import (
 	"time"
 )
 
-// Channel 缓冲的长度和容量两个小知识点
-func TestChan(t *testing.T) {
+// chan 缓冲的长度和容量两个小知识点
+// 同时测试chan 死锁
+func TestChanDeadLock(t *testing.T) {
+	defer func() {
+		a := recover()
+		fmt.Println(a)
+	}()
 	ch := make(chan string, 3)
 	ch <- "jiyik.com"
 	ch <- "onmpw.com"
@@ -21,6 +26,42 @@ func TestChan(t *testing.T) {
 	fmt.Println("新的长度是 ", len(ch))
 	ch <- "test2"
 	fmt.Println("新的长度是 ", len(ch))
+	// channel 阻塞，出现死锁
+	ch <- "test3"
+}
+
+func TestSelectChan(t *testing.T) {
+
+}
+
+// TestChanProducerAndConsumer
+// 测试chan生产者消费者模式
+//  @param t
+func TestChanProducerAndConsumer(t *testing.T) {
+	eventCh := make(chan string)
+	service1 := Service1{
+		event: eventCh,
+	}
+	group := sync.WaitGroup{}
+	group.Add(1)
+	go func() {
+		for {
+			time.Sleep(time.Second * 3)
+			service1.send(time.Now().String())
+		}
+		group.Done()
+	}()
+	service2 := Service2{
+		event: eventCh,
+	}
+	group.Add(1)
+	go func() {
+		service2.receive()
+		group.Done()
+		service2.receive2()
+		group.Done()
+	}()
+	group.Wait()
 }
 
 type Service1 struct {
@@ -47,6 +88,7 @@ func (s *Service2) receive() {
 
 	}
 }
+
 func (s *Service2) receive2() {
 	for true {
 		select {
@@ -61,30 +103,4 @@ func (s *Service2) receive2() {
 		}
 	}
 
-}
-func TestChanStruct(t *testing.T) {
-	eventCh := make(chan string)
-	service1 := Service1{
-		event: eventCh,
-	}
-	group := sync.WaitGroup{}
-	group.Add(1)
-	go func() {
-		for {
-			time.Sleep(time.Second * 3)
-			service1.send(time.Now().String())
-		}
-		group.Done()
-	}()
-	service2 := Service2{
-		event: eventCh,
-	}
-	group.Add(1)
-	go func() {
-		service2.receive()
-		group.Done()
-		service2.receive2()
-		group.Done()
-	}()
-	group.Wait()
 }

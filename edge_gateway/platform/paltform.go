@@ -1,18 +1,13 @@
 package platform
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/goiiot/libmqtt"
 	"github.com/goiiot/libmqtt/domain"
-	"github.com/goiiot/libmqtt/edge_gateway/connectors"
-	"github.com/goiiot/libmqtt/edge_gateway/constants"
 	"github.com/goiiot/libmqtt/edge_gateway/events"
 	"github.com/goiiot/libmqtt/edge_gateway/initialize/config"
 	"github.com/goiiot/libmqtt/edge_gateway/initialize/logger/cclog"
 	"github.com/goiiot/libmqtt/edge_gateway/initialize/server"
 	"github.com/goiiot/libmqtt/edge_gateway/mqtt"
-	"github.com/goiiot/libmqtt/edge_gateway/utils"
 	"github.com/mitchellh/mapstructure"
 	"log"
 	"strconv"
@@ -22,6 +17,7 @@ import (
 var Gateway = domain.Gateway{}
 
 type Event struct {
+	Ts         int64
 	EventTopic events.EventTopicType // 事件主题
 	DeviceId   string                // 事件目标设备
 	Data       interface{}           //事件数据
@@ -31,7 +27,7 @@ type Telemetry Event
 
 type DeviceEvent Event
 
-type PlatformEvent Event
+type NorthPlatformEvent Event
 
 type Reply Event
 
@@ -55,93 +51,7 @@ type SouthClient interface {
 
 	// ReceiveEvent 接收平台事件
 	//  @return chan
-	ReceiveEvent() chan PlatformEvent
-}
-type GPlatformClient struct {
-	Client   libmqtt.Client
-	ClientId string
-}
-
-func (G *GPlatformClient) PublishReply(event Reply) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (G *GPlatformClient) PublishEvent(event Event) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (G *GPlatformClient) PublishTelemetry(event Telemetry) {
-	var info = map[string]interface{}{}
-	var tsDatas = make([]interface{}, 0)
-	var tsData = make(map[string]interface{})
-
-	data := event.Data.(map[string]interface{})
-	tsData["values"] = data
-	tsData["ts"] = utils.GetTimestamp()
-	tsDatas = append(tsDatas, tsData)
-	info[event.DeviceId] = tsDatas
-	marshal, _ := json.Marshal(info)
-	G.Client.Publish(utils.CreatePublishPacket("v1/gateway/telemetry", 1, string(marshal)))
-}
-
-func (G *GPlatformClient) PublishDeviceEvent(event DeviceEvent) {
-	switch event.EventTopic {
-	case events.OnlineTopic:
-		info := map[string][]string{}
-		deviceIds := event.Data.([]string)
-		info["deviceIds"] = deviceIds
-		marshal, _ := json.Marshal(info)
-		G.Client.Publish(utils.CreatePublishPacket("v1/gateway/online", 1, string(marshal)))
-	case events.OfflineTopic:
-		info := map[string][]string{}
-		deviceIds := event.Data.([]string)
-		info["deviceIds"] = deviceIds
-		marshal, _ := json.Marshal(info)
-		G.Client.Publish(utils.CreatePublishPacket("v1/gateway/offline", 1, string(marshal)))
-	case events.RegisterTopic:
-		devices := event.Data.([]connectors.Device)
-		for _, device := range devices {
-			info := getConnectInfo(device)
-			marshal, _ := json.Marshal(info)
-			G.Client.Publish(utils.CreatePublishPacket("v1/gateway/connect", 1, string(marshal)))
-		}
-
-	}
-}
-
-func getConnectInfo(device connectors.Device) []interface{} {
-	var infos = make([]interface{}, 0)
-
-	var info = map[string]interface{}{}
-	info["deviceId"] = device.DeviceID
-	info["deviceName"] = device.DeviceName
-	info["productId"] = device.DeviceType
-	info["productName"] = device.DeviceTypeName
-	var attrs = make([]map[string]string, 0)
-	var telemetries = make([]map[string]string, 0)
-	for _, tag := range device.Tags {
-		var tagInfo = map[string]string{}
-		tagInfo["name"] = tag.Name
-		tagInfo["key"] = tag.TagId
-		tagInfo["dataType"] = tag.DataType
-		if tag.TagType == constants.TIMESERIES {
-			telemetries = append(telemetries, tagInfo)
-		} else {
-			attrs = append(attrs, tagInfo)
-		}
-	}
-	//info[constants.ATTRIBUTES] = attrs
-	//info[constants.TIMESERIES] = telemetries
-	infos = append(infos, info)
-
-	return infos
-}
-
-func (G *GPlatformClient) ReceiveEvent() chan PlatformEvent {
-	//TODO implement me
-	panic("implement me")
+	ReceiveEvent() chan NorthPlatformEvent
 }
 
 var PlatformClientMaps = make(map[string]SouthClient, 8)

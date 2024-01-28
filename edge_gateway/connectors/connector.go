@@ -5,6 +5,7 @@ import (
 	"github.com/goiiot/libmqtt/edge_gateway/constants"
 	"github.com/goiiot/libmqtt/edge_gateway/events"
 	"github.com/goiiot/libmqtt/edge_gateway/initialize/logger/cclog"
+	"github.com/goiiot/libmqtt/edge_gateway/utils"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -35,7 +36,7 @@ func (m *ConnectorManager) HandleChannelRestart() {
 //	@receiver m
 func (m *ConnectorManager) Start() {
 	// 处理北向任务
-	go m.HandleNorthEvent()
+	utils.GoWithRecover(m.HandleNorthEvent)
 
 }
 
@@ -86,6 +87,34 @@ func (m *ConnectorManager) HandleNorthEvent() {
 
 		}
 	}
+}
+
+// DeviceTelemetry
+//
+//	@receiver m
+//	@param ret
+func (m *ConnectorManager) DeviceTelemetry(ret ReadTagResult) {
+	event := events.SouthEvent{
+		Type:       events.Telemetry,
+		EventTopic: events.TelemetryTopic,
+		DeviceId:   ret.DeviceId,
+		Data:       ret.Success,
+	}
+	m.SouthEventCh <- event
+}
+
+// DeviceAttribute
+//
+//	@receiver m
+//	@param ret
+func (m *ConnectorManager) DeviceAttribute(ret ReadTagResult) {
+	event := events.SouthEvent{
+		Type:       events.Attribute,
+		EventTopic: events.AttributeTopic,
+		DeviceId:   ret.DeviceId,
+		Data:       ret,
+	}
+	m.SouthEventCh <- event
 }
 
 // DeviceOnline 设备上线

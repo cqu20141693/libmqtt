@@ -38,6 +38,7 @@ type SouthEventType string
 
 const (
 	Telemetry   SouthEventType = "telemetry"
+	Attribute   SouthEventType = "attribute"
 	DeviceEvent SouthEventType = "deviceEvent"
 	Event       SouthEventType = "event"
 	Reply       SouthEventType = "reply"
@@ -50,11 +51,13 @@ const (
 	OfflineTopic   EventTopicType = "offline"
 	RegisterTopic  EventTopicType = "register"
 	TelemetryTopic EventTopicType = "telemetry"
+	AttributeTopic EventTopicType = "attribute"
 	HealthTopic    EventTopicType = "health"
 )
 
 // SouthEvent 南向设备事件
 type SouthEvent struct {
+	Ts         int64
 	Type       SouthEventType
 	EventTopic EventTopicType
 	DeviceId   string

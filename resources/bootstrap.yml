@@ -5,7 +5,7 @@ gateway:
   platform:
     type: GEEGA
     host: localhost
-    keepAlive: 30
+    keepAlive: 90
     maxSize: 65537
     minReconnectDelay: 1
     port: 1883

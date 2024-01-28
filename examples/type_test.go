@@ -12,10 +12,14 @@ func TestTypeAssert(t *testing.T) {
 		"name": "tt",
 		"age":  10,
 	}
-	m2 := m.(map[string]interface{})
-	fmt.Printf("type assert success %v \n", m2)
+	// 类型断言
+	m2, ok := m.(map[string]interface{})
+	if ok {
+		fmt.Printf("type assert success %v \n", m2)
+	}
 
 	var x interface{}
+	// 类型
 	typeSwitch(x)
 	x = 1
 	typeSwitch(x)

@@ -5,7 +5,6 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/goiiot/libmqtt/edge_gateway/connectors"
 	"github.com/goiiot/libmqtt/edge_gateway/constants"
-	"github.com/goiiot/libmqtt/edge_gateway/events"
 	"github.com/goiiot/libmqtt/edge_gateway/initialize/logger/cclog"
 	"github.com/mitchellh/mapstructure"
 	"github.com/samber/lo"
@@ -16,6 +15,7 @@ type SimulateConnector struct {
 	connectors.ChannelInstance
 	Config map[string]interface{} // 整体配置
 	// 连接配置，根据协议不同，连接配置不同
+	// 每一种配置可以定义自己的struct
 	ConnectConfig map[string]interface{}
 	Client        SimulateClient
 }
@@ -90,13 +90,7 @@ func (s *SimulateConnector) AttributesReadSync(eventData connectors.ReadTagEvent
 
 func (s *SimulateConnector) AttributesRead(eventData connectors.ReadTagEvent) {
 	result := s.AttributesReadSync(eventData)
-	event := events.SouthEvent{
-		Type:       events.Telemetry,
-		EventTopic: events.TelemetryTopic,
-		DeviceId:   result.DeviceId,
-		Data:       result,
-	}
-	s.ConnectorManager.SouthEventCh <- event
+	s.ConnectorManager.DeviceAttribute(result)
 }
 
 func (s *SimulateConnector) Close(remote bool) {
@@ -142,8 +136,8 @@ func (s *SimulateConnector) LoadConfig() {
 			tagCount += 1
 			name := tf["name"].(string)
 			tagId := tf["tagId"].(string)
-			dataType := constants.DataType(tf["dataType"].(string))
-			tagType := constants.TagType(tf["tagType"].(string))
+			dataType := tf["dataType"].(string)
+			tagType := tf["tagType"].(string)
 			frequency := int64(tf["frequency"].(float64))
 			tagSendDataOnlyOnChange := tf["sendDataOnlyOnChange"].(bool)
 			tagExtension := make(map[string]interface{})
@@ -301,13 +295,7 @@ func (s *SimulateConnector) ReadTag(tagSlice []connectors.Tag) {
 	}
 	for deviceId, tags := range deviceTags {
 		values := s.Client.ReadTagValues(s.ChannelCache.Devices[deviceId], tags)
-		event := events.SouthEvent{
-			Type:       events.Telemetry,
-			EventTopic: events.TelemetryTopic,
-			DeviceId:   deviceId,
-			Data:       values.Success,
-		}
-		s.ConnectorManager.SouthEventCh <- event
+		s.ConnectorManager.DeviceTelemetry(values)
 	}
 }
 func NewSimulatorConnector(connectorManager *connectors.ConnectorManager, channelId string, channelName string, config map[string]interface{}) connectors.Channel {
