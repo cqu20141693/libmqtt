@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+func init() {
+	// 初始化消息处理
+	utils.AddHandler(utils.WelcomeTopic, welcomeHandler)
+	utils.AddHandler(utils.CmdTopic, cmdHandler)
+}
 func CreatClient(info *domain.MqttClientAddInfo) (libmqtt.Client, error) {
 	options := make([]libmqtt.Option, 0)
 	options = append(options, libmqtt.WithCleanSession(true))
@@ -40,8 +45,6 @@ func NewClient(options []libmqtt.Option, server string) (client libmqtt.Client, 
 		println(err.Error())
 		return nil, err
 	}
-	utils.AddHandler(utils.WelcomeTopic, welcomeHandler)
-	utils.AddHandler(utils.CmdTopic, cmdHandler)
 	client.HandleTopic(".*", func(client libmqtt.Client, topic string, qos libmqtt.QosLevel, msg []byte) {
 		// 处理原始消息
 		// 如果存在加解密可以先处理

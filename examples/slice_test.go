@@ -24,6 +24,7 @@ func TestArray(t *testing.T) {
 func TestSliceInit(t *testing.T) {
 	caps := 10
 	size := 0
+	// make 切片
 	ids := make([]string, size, caps)
 	ids2 := make([]string, size+1)
 
