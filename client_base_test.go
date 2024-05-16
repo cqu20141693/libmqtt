@@ -61,7 +61,7 @@ func baseClient(t *testing.T, handler *extraHandler) Client {
 			WillMessage: []byte("test data"),
 		}),
 		WithConnHandleFunc(testConnHandler(&c, t, handler)),
-		WithPubHandleFunc(func(client Client, topic string, err error) {
+		WithPubHandleFunc(func(client Client, topic string, msg string, err error) {
 			if err != nil {
 				t.Error(err)
 				t.FailNow()

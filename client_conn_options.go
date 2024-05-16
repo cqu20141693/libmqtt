@@ -93,6 +93,10 @@ type connectOptions struct {
 	newConnection Connector
 }
 
+func (c connectOptions) ConnPacket() *ConnPacket {
+	return c.connPacket
+}
+
 // nolint:gocyclo
 func (c connectOptions) connect(
 	parent *AsyncClient,

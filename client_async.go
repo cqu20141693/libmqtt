@@ -19,6 +19,7 @@ package libmqtt
 import (
 	"context"
 	"crypto/tls"
+	"github.com/rcrowley/go-metrics"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -69,9 +70,15 @@ type AsyncClient struct {
 	netHandler     NetHandleFunc
 	persistHandler PersistHandleFunc
 
-	ctx     context.Context    // closure of this channel will signal all client worker to stop
-	exit    context.CancelFunc // called when client exit
-	stopSig <-chan struct{}
+	ctx       context.Context    // closure of this channel will signal all client worker to stop
+	exit      context.CancelFunc // called when client exit
+	stopSig   <-chan struct{}
+	PubMetric metrics.Counter
+	RecMetric metrics.Counter
+}
+
+func (c *AsyncClient) ClientId() string {
+	return c.options.ConnPacket().ClientID
 }
 
 func (c *AsyncClient) Options() connectOptions {
@@ -107,9 +114,11 @@ func defaultClient() *AsyncClient {
 		connectedServers: new(sync.Map),
 		workers:          new(sync.WaitGroup),
 
-		ctx:     ctx,
-		exit:    exitFunc,
-		stopSig: ctx.Done(),
+		ctx:       ctx,
+		exit:      exitFunc,
+		stopSig:   ctx.Done(),
+		PubMetric: metrics.NewCounter(),
+		RecMetric: metrics.NewCounter(),
 	}
 }
 
