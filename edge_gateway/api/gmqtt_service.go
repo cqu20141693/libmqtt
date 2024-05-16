@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/go-co-op/gocron"
+	"github.com/go-co-op/gocron/v2"
 	"github.com/goiiot/libmqtt/cmd/utils"
 	"github.com/goiiot/libmqtt/domain"
 	"github.com/goiiot/libmqtt/edge_gateway/initialize/logger/cclog"
@@ -36,7 +36,10 @@ func StopMock(rg *gin.RouterGroup) {
 		clientId, exist := c.GetQuery("clientId")
 		if exist {
 			info := domain.ClientMaps[clientId]
-			info.Scheduler.Stop()
+			err := info.Scheduler.Shutdown()
+			if err != nil {
+				cclog.SugarLogger.Errorf("Scheduler Shutdown failed=%v", err)
+			}
 			c.JSON(http.StatusOK, "success")
 		} else {
 			c.JSON(http.StatusOK, "success")
@@ -188,17 +191,24 @@ func startMock(clientInfo *domain.GClientInfo) bool {
 		for i := range clientInfo.MockPolicy {
 			if clientInfo.MockPolicy[i].Enable {
 				policy := clientInfo.MockPolicy[i]
-				scheduler := gocron.NewScheduler(time.Local)
-				_, err := scheduler.Every(policy.Frequency).Millisecond().Do(func() {
-					fmt.Printf("timer %v ms publish message", policy.Frequency)
-					clientInfo.Client.Publish(utils.CreatePublishPacket(policy.Topic, policy.Qos, policy.Message))
+				scheduler, err := gocron.NewScheduler(gocron.WithLocation(time.Local))
+				if err != nil {
+					cclog.SugarLogger.Errorf("NewScheduler failed=%v", err)
+					return true
+				}
+				_, err = scheduler.NewJob(
+					gocron.DurationJob(time.Millisecond*time.Duration(policy.Frequency)),
+					gocron.NewTask(func() {
+						fmt.Printf("timer %v ms publish message", policy.Frequency)
+						clientInfo.Client.Publish(utils.CreatePublishPacket(policy.Topic, policy.Qos, policy.Message))
 
-				})
+					}),
+				)
 				if err != nil {
 					cclog.SugarLogger.Error(err)
 					return true
 				}
-				scheduler.StartAsync()
+				scheduler.Start()
 				clientInfo.SetScheduler(scheduler)
 			}
 		}

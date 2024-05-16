@@ -3,48 +3,32 @@ package mqtt
 import (
 	"fmt"
 	"github.com/goiiot/libmqtt"
+	"github.com/goiiot/libmqtt/edge_gateway/initialize/logger/cclog"
 )
 
 func PubHandler(client libmqtt.Client, topic string, msg string, err error) {
 
 	if err != nil {
-		m := fmt.Sprintf("pub %v %v failed,error=%v", topic, msg, err)
-		fmt.Println(m)
+		m := fmt.Sprintf("client=%s pub %v %v failed,error=%v", client.ClientId(), topic, msg, err)
+		cclog.SugarLogger.Error(m)
 	} else {
-		m := fmt.Sprintf("pub %v %v success", topic, msg)
-		fmt.Println(m)
+		if client.PubMetric != nil {
+			client.PubMetric.Inc(1)
+		}
 	}
 }
 
-func ConnHandler(client libmqtt.Client, server string, code byte, err error) {
-	if err != nil {
-		fmt.Printf("\nconnect to server:%v error:%v\n", server, err)
-	} else if code != libmqtt.CodeSuccess {
-		fmt.Printf("\nconnection rejected by server：%v, code:%v\n", server, code)
-	} else {
-		fmt.Printf("\nconnected to server:%v\n", server)
-	}
-}
 func UnSubHandler(client libmqtt.Client, topics []string, err error) {
 	if err != nil {
-		fmt.Println("\nunsub", topics, "failed, error =", err)
+		cclog.SugarLogger.Info(fmt.Sprintf("client=%s unsub %v failed, error:%v", client.ClientId(), topics, err))
 	} else {
-		fmt.Println("\nunsub", topics, "success")
+		cclog.SugarLogger.Info(fmt.Sprintf("client=%s unsub %v success", client.ClientId(), topics))
 	}
 }
 func SubHandler(client libmqtt.Client, topics []*libmqtt.Topic, err error) {
 	if err != nil {
-		fmt.Println("\nsub", topics, "failed, error =", err)
+		cclog.SugarLogger.Info(fmt.Sprintf("client=%s sub %v failed, error:%v", client.ClientId(), topics, err))
 	} else {
-		fmt.Println("\nsub", topics, "success")
+		cclog.SugarLogger.Info(fmt.Sprintf("client=%s sub %v success", client.ClientId(), topics))
 	}
-}
-func NetHandler(client libmqtt.Client, server string, err error) {
-	fmt.Println("\nconnection to server, error:", err)
-	client.Destroy(false)
-}
-
-func NetHandlerWithReconnect(client libmqtt.Client, server string, err error) {
-	fmt.Println("\nconnection to server, error:", err)
-	client.Reconnect(server)
 }

@@ -1,21 +1,40 @@
 package domain
 
 import (
-	"github.com/go-co-op/gocron"
+	"fmt"
+	"github.com/go-co-op/gocron/v2"
 	mqtt "github.com/goiiot/libmqtt"
+	"github.com/goiiot/libmqtt/edge_gateway/initialize/logger/cclog"
 )
 
 type MqttClientAddInfo struct {
-	Address    string              `form:"address" json:"address" xml:"address" binding:"required"`
-	ClientID   string              `form:"clientID" json:"clientID" xml:"clientID" binding:"required"`
-	Username   string              `form:"username" json:"username" xml:"username" binding:"required"`
-	Password   string              `form:"password" json:"password" xml:"password" binding:"required"`
-	Keepalive  int64               `form:"keepalive" json:"keepalive" xml:"keepalive" binding:"required"`
-	MockPolicy []PublishMockPolicy `form:"mockPolicy" json:"mockPolicy" xml:"mockPolicy"`
+	Address         string              `form:"address" json:"address" xml:"address" binding:"required"`
+	ClientID        string              `form:"clientID" json:"clientID" xml:"clientID" binding:"required"`
+	Username        string              `form:"username" json:"username" xml:"username" binding:"required"`
+	Password        string              `form:"password" json:"password" xml:"password" binding:"required"`
+	Keepalive       int64               `form:"keepalive" json:"keepalive" xml:"keepalive" binding:"required"`
+	MockPolicy      []PublishMockPolicy `form:"mockPolicy" json:"mockPolicy" xml:"mockPolicy"`
+	ProtocolVersion byte
+	client          mqtt.Client
+}
+
+func (m *MqttClientAddInfo) PrintClientMetric() {
+	client := m.client
+	if client != nil && client.PubMetric != nil {
+		cclog.SugarLogger.Info(fmt.Sprintf("device: %s, publish: %d", m.ClientID, client.PubMetric.Count()))
+	}
+}
+
+func (m *MqttClientAddInfo) SetClient(client mqtt.Client) {
+	m.client = client
+}
+
+func NewMqttClientAddInfoWithVersion(address string, clientID string, username string, password string, keepalive int64, version byte) *MqttClientAddInfo {
+	return &MqttClientAddInfo{Address: address, ClientID: clientID, Username: username, Password: password, Keepalive: keepalive, ProtocolVersion: version}
 }
 
 func NewMqttClientAddInfo(address string, clientID string, username string, password string, keepalive int64) *MqttClientAddInfo {
-	return &MqttClientAddInfo{Address: address, ClientID: clientID, Username: username, Password: password, Keepalive: keepalive}
+	return NewMqttClientAddInfoWithVersion(address, clientID, username, password, keepalive, 4)
 }
 
 type PublishMockPolicy struct {
@@ -35,18 +54,18 @@ type GClientInfo struct {
 	Username   string
 	Password   string
 	Keepalive  int64
-	Scheduler  *gocron.Scheduler
+	Scheduler  gocron.Scheduler
 	Client     mqtt.Client
 	EnableMock bool
 	Connected  bool
 	MockPolicy []PublishMockPolicy `form:"mockPolicy" json:"mockPolicy" xml:"mockPolicy"`
 }
 
-func (G *GClientInfo) GetScheduler() *gocron.Scheduler {
+func (G *GClientInfo) GetScheduler() gocron.Scheduler {
 	return G.Scheduler
 }
 
-func (G *GClientInfo) SetScheduler(scheduler *gocron.Scheduler) {
+func (G *GClientInfo) SetScheduler(scheduler gocron.Scheduler) {
 	G.Scheduler = scheduler
 }
 
