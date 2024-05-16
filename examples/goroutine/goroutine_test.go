@@ -1,4 +1,4 @@
-package examples
+package goroutine
 
 import (
 	"context"
