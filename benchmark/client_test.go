@@ -28,7 +28,6 @@ const (
 	testKeepalive    = 3600                   // prevent keepalive packet disturb
 	testServer       = "10.168.141.229:33183" // emqttd broker address
 	telemetryMeTopic = "v1/devices/me/telemetry"
-	telemetryTopic   = "v1/gateway/telemetry"
 	testBufSize      = 100
 
 	testPubCount = 300
@@ -72,7 +71,7 @@ func BenchmarkLibmqttClient(b *testing.B) {
 					Payload:   testTopicMsg,
 				})
 			}
-			client.UnSubscribe(telemetryMeTopic)
+			client.Unsubscribe(telemetryMeTopic)
 		}),
 	)
 

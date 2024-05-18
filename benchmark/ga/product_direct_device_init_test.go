@@ -78,19 +78,6 @@ func MockDirectProduct(count int, address string, token string) {
 
 }
 
-func MockProductTSL(productId string) {
-
-	versionId := GetProductVersionId(productId)
-	if versionId == "" {
-		_ = fmt.Errorf("GetProductVersionId failed:%s", productId)
-		return
-	}
-	tslFormat := "{\"metadata\": \"{\\\"tags\\\":[{\\\"id\\\":\\\"Location\\\",\\\"name\\\":\\\"位置信息\\\",\\\"valueType\\\":{\\\"id\\\":\\\"geoPoint\\\",\\\"latProperty\\\":\\\"lat\\\",\\\"lonProperty\\\":\\\"lon\\\",\\\"name\\\":\\\"地理位置\\\",\\\"type\\\":\\\"geoPoint\\\"}}]," +
-		"\\\"properties\\\":[{\\\"id\\\":\\\"a0\\\",\\\"name\\\":\\\"a0\\\",\\\"description\\\":\\\"\\\",\\\"valueType\\\":{\\\"type\\\":\\\"int\\\"},\\\"expands\\\":{\\\"readOnly\\\":[\\\"report\\\"],\\\"propertyType\\\":\\\"timeseries\\\",\\\"source\\\":\\\"device\\\",\\\"storageType\\\":\\\"direct\\\"}}]}\"}"
-	tslUrlFormat := address + "/product/version/%s"
-	fmt.Println(tslFormat, tslUrlFormat)
-}
-
 func TestTslMock(t *testing.T) {
 	tslFormat := `{
   "metadata": "{\"tags\":[{\"id\":\"Location\",\"name\":\"位置信息\",\"valueType\":{\"id\":\"geoPoint\",\"latProperty\":\"lat\",\"lonProperty\":\"lon\",\"name\":\"地理位置\",\"type\":\"geoPoint\"}}],\"properties\":[{\"id\":\"a0\",\"name\":\"a0\",\"description\":\"\",\"valueType\":{\"type\":\"int\"},\"expands\":{\"readOnly\":[\"report\"],\"propertyType\":\"timeseries\",\"source\":\"device\",\"storageType\":\"direct\"}}]}"

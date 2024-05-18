@@ -33,7 +33,7 @@ func DoRequest(method string, url string, body string, token string) bool {
 	Client.Timeout = 300 * time.Second
 	resp, err := Client.Do(req)
 	if resp.StatusCode != 200 || err != nil {
-		fmt.Errorf("do request failed:code=%d url=%s", resp.StatusCode, url)
+		_ = fmt.Errorf("do request failed:code=%d url=%s", resp.StatusCode, url)
 	}
 	return false
 }
@@ -59,13 +59,13 @@ func DoRequestWithResp(method string, url string, body string, token string) map
 
 	resp, err := Client.Do(req)
 	if err != nil {
-		fmt.Errorf("do request with resp failed:%s", url)
+		_ = fmt.Errorf("do request with resp failed:%s", url)
 		return nil
 	}
 	var ret map[string]interface{}
 	all, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Errorf("do request with resp failed:%s", url)
+		_ = fmt.Errorf("do request with resp failed:%s", url)
 		return nil
 	}
 	_ = sonic.Unmarshal(all, &ret)

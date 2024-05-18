@@ -23,7 +23,7 @@ var connOkCounter = metrics.NewCounter()
 var connFailCounter = metrics.NewCounter()
 var sumCounter = metrics.NewCounter()
 
-func initMetric(clientId string) {
+func initMetric() {
 	once.Do(func() {
 		err := metrics.Register(connOk, connOkCounter)
 		if err != nil {
@@ -116,7 +116,7 @@ func MqttPublish(count int, connInfoFunc ConnectInfoFunc, pubInfoFunc PublishInf
 
 		server, clientId, username, password, keepalive, protoVersion, duration := connInfoFunc(i)
 		telemetryFunc, topic, pubCount, qosLevel, frequency := pubInfoFunc(clientId)
-		initMetric(clientId)
+		initMetric()
 		info := domain.NewMqttClientAddInfoWithVersion(server, clientId, username, password, keepalive, byte(protoVersion))
 		infos = append(infos, info)
 		go func(addInfo *domain.MqttClientAddInfo) {
