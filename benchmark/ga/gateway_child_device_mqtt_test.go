@@ -5,45 +5,26 @@ import (
 	"github.com/bytedance/sonic"
 	lib "github.com/goiiot/libmqtt"
 	"github.com/goiiot/libmqtt/common"
-	"github.com/goiiot/libmqtt/domain"
-	"github.com/goiiot/libmqtt/edge_gateway/mqtt"
 	"github.com/goiiot/libmqtt/edge_gateway/utils"
 	"github.com/google/uuid"
+	"log"
 	"math/rand"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 )
 
-var (
-	testTopicMsg = []byte("{\"a\":\"b\",\"c\":\"d\",\"e\":\"f\",\"string\":\"Hello World\"}")
-)
-
-// BenchmarkGaPlatformConnect 压测平台连接
+// BenchmarkGaPlatformGatewayConnect 压测平台连接
 //
 //	@param b
-func BenchmarkGaPlatformConnect(b *testing.B) {
+func BenchmarkGaPlatformGatewayConnect(b *testing.B) {
 	// 使用测试环境配置
-	UseTestConfig()
+	//UseTestConfig()
 
-	b.N = testConnectCount
-
-	infos := make([]*domain.MqttClientAddInfo, 0, b.N)
-	idPrefix := "benchmark"
-	for i := 0; i < b.N; i++ {
-		info := domain.NewMqttClientAddInfo(common.Server, fmt.Sprintf("%s%d", idPrefix, i), common.Username, common.Password, common.Keepalive)
-		infos = append(infos, info)
-
-		go func(addInfo *domain.MqttClientAddInfo) {
-			client, err := mqtt.CreatClient(addInfo)
-			if err != nil {
-				_ = fmt.Errorf("creat g platform mqtt client failed, %v", info)
-			}
-			client.Wait()
-		}(info)
-
-	}
+	b.N = 12
+	common.MqttConnect(b.N, func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
+		return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), common.Username, common.Password, common.Keepalive, lib.V311, time.Second * 10
+	})
 
 	time.Sleep(time.Second * 10)
 }
@@ -53,45 +34,18 @@ func BenchmarkGaPlatformConnect(b *testing.B) {
 //
 //	@param b
 func BenchmarkGaPlatformConnectChild(b *testing.B) {
-	b.N = testConnectCount
-	infos := make([]*domain.MqttClientAddInfo, 0, b.N)
-	idPrefix := "benchmark"
-	group := sync.WaitGroup{}
-	group.Add(b.N)
+	b.N = 12
+	common.MqttPublish(b.N,
+		func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
+			return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), directUsername, directPassword, common.Keepalive, lib.V311, time.Second * 10
+		},
+		func(clientId string) (common.TelemetryFunc, string, int, lib.QosLevel, time.Duration) {
+			duration := time.Millisecond * 3000
+			return mockGatewayDeviceTSLPkt, "v1/gateway/connect", 1, lib.QosLevel(1), duration
+		})
+	log.Println("MqttPublish success")
+	time.Sleep(time.Second * 30)
 
-	for i := 0; i < b.N; i++ {
-		productId := "benchmarkP" + strconv.Itoa(i)
-		childPrefix := "benchmarkC" + strconv.Itoa(i) + "_"
-		gateway := fmt.Sprintf("%s%d", idPrefix, i)
-		info := domain.NewMqttClientAddInfo(common.Server, gateway, common.Username, common.Password, common.Keepalive)
-		infos = append(infos, info)
-
-		go func(addInfo *domain.MqttClientAddInfo) {
-			client, err := mqtt.CreatClient(addInfo)
-			if err != nil {
-				_ = fmt.Errorf("creat g platform mqtt client failed, %v", info)
-			}
-			time.Sleep(time.Second * 3)
-			for i := 0; i < testConnectChildCount; i++ {
-				child := childPrefix + strconv.Itoa(i)
-				connPkt := mockConnectPkt(productId, child)
-				connPktBytes, err := sonic.Marshal(connPkt)
-				if err != nil {
-					_ = fmt.Errorf("sonic marchal faild: %v", err)
-					continue
-				}
-				// publish connect
-				client.Publish(&lib.PublishPacket{
-					TopicName: "v1/gateway/connect",
-					Payload:   connPktBytes,
-				})
-			}
-
-			group.Done()
-		}(info)
-
-	}
-	group.Wait()
 }
 
 // BenchmarkGaPlatformPublish
@@ -99,68 +53,46 @@ func BenchmarkGaPlatformConnectChild(b *testing.B) {
 //
 //	@param b
 func BenchmarkGaPlatformPublish(b *testing.B) {
-	b.N = testConnectCount
-	infos := make([]*domain.MqttClientAddInfo, 0, b.N)
-	idPrefix := "benchmark"
-	group := sync.WaitGroup{}
-	group.Add(b.N)
-	for i := 0; i < b.N; i++ {
+	b.N = 12
+	common.MqttPublish(b.N,
+		func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
+			return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), directUsername, directPassword, common.Keepalive, lib.V311, time.Second * 10
+		},
+		func(clientId string) (common.TelemetryFunc, string, int, lib.QosLevel, time.Duration) {
+			duration := time.Millisecond * 3000
+			return mockGatewayTelemetryPkt, telemetryTopic, 1, lib.QosLevel(1), duration
+		})
+	log.Println("MqttPublish success")
+	time.Sleep(time.Second * 3)
 
-		childPrefix := "benchmarkC" + strconv.Itoa(i) + "_"
-		gateway := fmt.Sprintf("%s%d", idPrefix, i)
-		info := domain.NewMqttClientAddInfo(common.Server, gateway, common.Username, common.Password, common.Keepalive)
-		infos = append(infos, info)
+}
+func BenchmarkGaPlatformGatewayPublish(b *testing.B) {
+	b.N = 12
+	common.MqttPublish(b.N,
+		func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
+			return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), directUsername, directPassword, common.Keepalive, lib.V311, time.Second * 10
+		},
+		func(clientId string) (common.TelemetryFunc, string, int, lib.QosLevel, time.Duration) {
+			duration := time.Millisecond * 3000
+			return mockGatewayMeTelemetryPkt, telemetryMeTopic, 1, lib.QosLevel(1), duration
+		})
+	log.Println("MqttPublish success")
+	time.Sleep(time.Second * 3)
 
-		go func(addInfo *domain.MqttClientAddInfo) {
-			client, err := mqtt.CreatClient(addInfo)
-			if err != nil {
-				_ = fmt.Errorf("creat g platform mqtt client failed, %v", info)
-			}
-			time.Sleep(time.Second * 3)
-			b.N = testPubCount
-			for i := 0; i < b.N; i++ {
-				if testChild {
-					time.Sleep(time.Millisecond * 1000)
-					telemetryPkt := mockTelemetryPkt(childPrefix)
-					telemetryPktBytes, err := sonic.Marshal(telemetryPkt)
-					if err != nil {
-						_ = fmt.Errorf("sonic marchal faild: %v", err)
-						continue
-					}
-					client.Publish(&lib.PublishPacket{
-						TopicName: telemetryTopic,
-						Payload:   telemetryPktBytes,
-					})
-				} else {
-					// 网关自上数
-					time.Sleep(time.Millisecond * 10)
-					client.Publish(&lib.PublishPacket{
-						TopicName: telemetryMeTopic,
-						Payload:   testTopicMsg,
-					})
-				}
-
-			}
-			group.Done()
-		}(info)
-
-	}
-	group.Wait()
-	time.Sleep(time.Second * testPubCount)
 }
 
 // mockConnectPkt
 // 模拟连接topic报文
 //
-//	@param gatewayProductId
+//	@param productId
 //	@param device
 //	@return map[string]interface{}
-func mockConnectPkt(productId string, device string) map[string]interface{} {
+func mockConnectPkt(productId string, device string, propsCount int) map[string]interface{} {
 	connPkt := make(map[string]interface{})
-	connPkt["gatewayProductId"] = productId
+	connPkt["productId"] = productId
 	connPkt["deviceId"] = device
 	connPkt["channelId"] = uuid.New().String()
-	connPkt["timeseries"] = mockTimeseries()
+	connPkt["timeseries"] = mockTimeseries(propsCount)
 	return connPkt
 }
 
@@ -168,16 +100,37 @@ func mockConnectPkt(productId string, device string) map[string]interface{} {
 // 模拟属性模型
 //
 //	@return []map[string]interface{}
-func mockTimeseries() []map[string]interface{} {
-	timeseries := make([]map[string]interface{}, 0, timeseriesCount)
-	for i := 0; i < timeseriesCount; i++ {
+func mockTimeseries(propsCount int) []map[string]interface{} {
+	timeseries := make([]map[string]interface{}, 0, propsCount)
+	for i := 0; i < propsCount; i++ {
 		property := make(map[string]interface{})
 		property["name"] = "a" + strconv.Itoa(i)
 		property["key"] = "a" + strconv.Itoa(i)
-		property["dataType"] = "String"
+		property["dataType"] = randomDataType()
 		timeseries = append(timeseries, property)
 	}
 	return timeseries
+}
+
+func randomDataType() string {
+
+	switch mockInt(0, 10) {
+	case 0:
+		return "Integer"
+	case 1:
+		return "Long"
+	case 3:
+		return "Double"
+	case 4:
+		return "Float"
+	case 5:
+		return "String"
+	case 6:
+		return "Bool"
+	default:
+		return "String"
+	}
+
 }
 
 // mockTelemetryPkt
@@ -223,4 +176,65 @@ func mockValues() map[string]interface{} {
 //	@return int
 func mockInt(min int, max int) int {
 	return min + (rand.Int() % (max - min))
+}
+
+// mockGatewayTelemetryPkt 模拟网关子设备遥测数据
+//
+//	@param gateWayId
+//	@return []map[string]interface{}
+func mockGatewayTelemetryPkt(gatewayId string) []map[string]interface{} {
+	index := gatewayId[len(gatewayPrefix):]
+	childPrefix := "benchmarkC_" + index + "_"
+	ret := make([]map[string]interface{}, 0, 1)
+	pkt := mockTelemetryPkt(childPrefix)
+	ret = append(ret, pkt)
+	return ret
+}
+
+func TestMockGatewayTelemetryPkt(t *testing.T) {
+	pkt := mockGatewayTelemetryPkt("benchmark6")
+	marshal, _ := sonic.Marshal(pkt)
+	log.Println(string(marshal))
+}
+
+// mockGatewayDeviceTSLPkt
+//
+//	@param deviceId 网关id
+//	@return map[string]interface{}
+func mockGatewayDeviceTSLPkt(deviceId string) []map[string]interface{} {
+	index := deviceId[len(gatewayPrefix):]
+	productId := productIdPrefix + "0"
+	childPrefix := "benchmarkC_" + index + "_"
+
+	//timeseriesCount = 10
+
+	ret := make([]map[string]interface{}, 0, testConnectChildCount)
+	for i := 0; i < testConnectChildCount; i++ {
+		child := childPrefix + strconv.Itoa(i)
+		connPkt := mockConnectPkt(productId, child, timeseriesCount)
+		marshal, _ := sonic.Marshal(connPkt)
+		log.Println(string(marshal))
+		ret = append(ret, connPkt)
+	}
+
+	return ret
+}
+
+func TestMockGatewayDeviceTSLPkt(t *testing.T) {
+	pkt := mockGatewayDeviceTSLPkt(gatewayPrefix + "0")
+	marshal, _ := sonic.Marshal(pkt)
+
+	log.Println(string(marshal))
+}
+
+func mockGatewayMeTelemetryPkt(gatewayId string) []map[string]interface{} {
+	ret := make([]map[string]interface{}, 0, 1)
+	values := make(map[string]interface{})
+	mockNum := 100
+	for i := 0; i < mockNum; i++ {
+		key := fmt.Sprintf("a%d", i)
+		values[key] = mockInt(0, 9999)
+	}
+	ret = append(ret, values)
+	return ret
 }

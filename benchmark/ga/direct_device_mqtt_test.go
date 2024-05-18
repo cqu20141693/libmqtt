@@ -4,19 +4,21 @@ import (
 	"fmt"
 	"github.com/goiiot/libmqtt"
 	common2 "github.com/goiiot/libmqtt/common"
+	"log"
 	"testing"
 	"time"
 )
 
-// BenchmarkGaPlatformConnect 压测平台连接
+// BenchmarkGaPlatformGatewayConnect 压测平台连接
 //
 //	@param b
 func BenchmarkDirectPlatformConnect(b *testing.B) {
 
 	b.N = 800
-	common2.MqttConnect(b.N, func(index int) (string, string, string, string, int64, libmqtt.ProtoVersion) {
-		return common2.Server, fmt.Sprintf(directDeviceFormat, index), directUsername, directPassword, common2.Keepalive, libmqtt.V311
+	common2.MqttConnect(b.N, func(index int) (string, string, string, string, int64, libmqtt.ProtoVersion, time.Duration) {
+		return common2.Server, fmt.Sprintf(directDeviceFormat, index), directUsername, directPassword, common2.Keepalive, libmqtt.V311, -1
 	})
+	time.Sleep(time.Second * 5)
 }
 
 func BenchmarkDirectPlatformPublish(b *testing.B) {
@@ -24,8 +26,8 @@ func BenchmarkDirectPlatformPublish(b *testing.B) {
 	b.N = 800
 
 	common2.MqttPublish(b.N,
-		func(index int) (string, string, string, string, int64, libmqtt.ProtoVersion) {
-			return common2.Server, fmt.Sprintf(directDeviceFormat, index), directUsername, directPassword, common2.Keepalive, libmqtt.V311
+		func(index int) (string, string, string, string, int64, libmqtt.ProtoVersion, time.Duration) {
+			return common2.Server, fmt.Sprintf(directDeviceFormat, index), directUsername, directPassword, common2.Keepalive, libmqtt.V311, time.Second
 		},
 		func(clientId string) (common2.TelemetryFunc, string, int, libmqtt.QosLevel, time.Duration) {
 			duration := time.Millisecond * 1000
@@ -33,7 +35,7 @@ func BenchmarkDirectPlatformPublish(b *testing.B) {
 		})
 }
 
-func mockDirectTelemetryPkt(deviceId string) map[string]interface{} {
+func mockDirectTelemetryPkt(deviceId string) []map[string]interface{} {
 	telemetryPkt := make(map[string]interface{})
 	telemetryPkt["deviceId"] = deviceId
 	values := make(map[string]interface{})
@@ -43,5 +45,12 @@ func mockDirectTelemetryPkt(deviceId string) map[string]interface{} {
 		values[key] = common2.MockInt(0, 9999)
 	}
 	telemetryPkt["properties"] = values
-	return telemetryPkt
+	ret := make([]map[string]interface{}, 0, 1)
+	ret = append(ret, telemetryPkt)
+	return ret
+}
+
+func TestMockDirectTelemetryPkt(t *testing.T) {
+	pkt := mockDirectTelemetryPkt("test")
+	log.Println(pkt)
 }

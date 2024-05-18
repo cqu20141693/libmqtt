@@ -53,9 +53,8 @@ func MqttConnect(count int, connInfoFunc ConnectInfoFunc) {
 		success atomic.Int32
 		failed  atomic.Int32
 	}{}
-
 	for i := 0; i < count; i++ {
-		server, clientId, username, password, keepalive, protoVersion := connInfoFunc(i)
+		server, clientId, username, password, keepalive, protoVersion, duration := connInfoFunc(i)
 		info := domain.NewMqttClientAddInfoWithVersion(server, clientId, username, password, keepalive, byte(protoVersion))
 		infos = append(infos, info)
 		go func(addInfo *domain.MqttClientAddInfo) {
@@ -68,12 +67,15 @@ func MqttConnect(count int, connInfoFunc ConnectInfoFunc) {
 				return
 			}
 			ret.success.Add(1)
+			if duration > 0 {
+				time.Sleep(duration)
+			}
 
 			client.Wait()
 		}(info)
 
 	}
-	time.Sleep(time.Second * 5)
+
 	fmt.Println(fmt.Sprintf("success=%d,failed=%d", ret.success.Load(), ret.failed.Load()))
 }
 
@@ -84,7 +86,7 @@ func MqttConnect(count int, connInfoFunc ConnectInfoFunc) {
 //  @return string password
 //  @return int64 keepalive
 
-type ConnectInfoFunc func(index int) (string, string, string, string, int64, libmqtt.ProtoVersion)
+type ConnectInfoFunc func(index int) (string, string, string, string, int64, libmqtt.ProtoVersion, time.Duration)
 
 // eg: publishInfo
 
@@ -96,7 +98,7 @@ type ConnectInfoFunc func(index int) (string, string, string, string, int64, lib
 // @return time.Duration 发送频率
 type PublishInfoFunc func(clientId string) (TelemetryFunc, string, int, libmqtt.QosLevel, time.Duration)
 
-type TelemetryFunc func(deviceId string) map[string]interface{}
+type TelemetryFunc func(deviceId string) []map[string]interface{}
 
 // MqttPublish 连接mqtt并publish 消息
 //
@@ -112,7 +114,7 @@ func MqttPublish(count int, connInfoFunc ConnectInfoFunc, pubInfoFunc PublishInf
 	group.Add(count)
 	for i := 0; i < count; i++ {
 
-		server, clientId, username, password, keepalive, protoVersion := connInfoFunc(i)
+		server, clientId, username, password, keepalive, protoVersion, duration := connInfoFunc(i)
 		telemetryFunc, topic, pubCount, qosLevel, frequency := pubInfoFunc(clientId)
 		initMetric(clientId)
 		info := domain.NewMqttClientAddInfoWithVersion(server, clientId, username, password, keepalive, byte(protoVersion))
@@ -129,12 +131,17 @@ func MqttPublish(count int, connInfoFunc ConnectInfoFunc, pubInfoFunc PublishInf
 			info.SetClient(client)
 			connOkCounter.Inc(1)
 			// 等待连接完成
+
 			time.Sleep(time.Second * 2)
 			publishBySleep(telemetryFunc, info, client, topic, qosLevel, pubCount, frequency)
 			// 存在发送任务为调度的情况，需要了解框架，保证调度任务都被执行
 			//publishByScheduler(telemetryFunc, info, client, topic, qosLevel, time.Duration(pubCount)*frequency, scheduler, frequency, clientId)
+			if duration > 0 {
+				time.Sleep(duration)
+			} else {
+				time.Sleep(time.Second * 3)
+			}
 
-			time.Sleep(time.Second * 3)
 			if client.PubMetric != nil {
 
 				count := client.PubMetric.Count()
@@ -167,16 +174,19 @@ func printTimer(scheduler gocron.Scheduler, infos []*domain.MqttClientAddInfo) {
 func publishBySleep(telemetryFunc TelemetryFunc, info *domain.MqttClientAddInfo, client libmqtt.Client, topic string, qosLevel libmqtt.QosLevel, pubCount int, frequency time.Duration) {
 	publishFunc := func() {
 		telemetryPkt := telemetryFunc(info.ClientID)
-		telemetryPktBytes, err := sonic.Marshal(telemetryPkt)
-		if err != nil {
-			cclog.SugarLogger.Errorf("sonic marchal faild: %v", err)
-			return
+		for _, pkt := range telemetryPkt {
+			telemetryPktBytes, err := sonic.Marshal(pkt)
+			if err != nil {
+				cclog.SugarLogger.Errorf("sonic marchal faild: %v", err)
+				return
+			}
+			client.Publish(&libmqtt.PublishPacket{
+				TopicName: topic,
+				Qos:       qosLevel,
+				Payload:   telemetryPktBytes,
+			})
 		}
-		client.Publish(&libmqtt.PublishPacket{
-			TopicName: topic,
-			Qos:       qosLevel,
-			Payload:   telemetryPktBytes,
-		})
+
 	}
 	if pubCount < 0 {
 		for true {
@@ -209,6 +219,18 @@ func publishBySleep(telemetryFunc TelemetryFunc, info *domain.MqttClientAddInfo,
 	}
 }
 
+// publishByScheduler 通过调度器发送消息
+// 需要优化解决任务调度调度完成，不能出现部分任务未调度情况
+//
+//	@param telemetryFunc
+//	@param info
+//	@param client
+//	@param topic
+//	@param qosLevel
+//	@param duration
+//	@param scheduler
+//	@param frequency
+//	@param clientId
 func publishByScheduler(telemetryFunc TelemetryFunc, info *domain.MqttClientAddInfo, client libmqtt.Client, topic string, qosLevel libmqtt.QosLevel, duration time.Duration, scheduler gocron.Scheduler, frequency time.Duration, clientId string) {
 	publishFunc := func() {
 		telemetryPkt := telemetryFunc(info.ClientID)

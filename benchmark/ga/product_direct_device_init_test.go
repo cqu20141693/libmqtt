@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func init() {
+func initDirectConfig() {
 	productIdPrefix = "directP"
 	protocol = "demo-protocol"
 	deviceType = "device"
@@ -16,11 +16,13 @@ func init() {
 }
 
 func TestMockDirectProduct(t *testing.T) {
+	initDirectConfig()
 	MockDirectProduct(1, address, token)
 
 }
 
 func TestMockDirectDevice(t *testing.T) {
+	initDirectConfig()
 
 	MockDevice(productIdPrefix+"0", 500, 800, token, address)
 }

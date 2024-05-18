@@ -13,9 +13,9 @@ import (
 //	@param t
 
 func TestMockGateway(t *testing.T) {
-
+	gatewayProductId = "sprint58"
 	// 网关产品可以直接创建，还需要区分数采能力
-	MockGatewayDevice(11, token, address)
+	MockGatewayDevice(12, token, address)
 }
 
 // MockGatewayDevice
@@ -27,7 +27,8 @@ func TestMockGateway(t *testing.T) {
 func MockGatewayDevice(count int, token string, address string) {
 
 	for i := 0; i < count; i++ {
-		deviceId := fmt.Sprintf("benchmark%d", i)
+
+		deviceId := fmt.Sprintf(gatewayPrefix, i)
 		createUrl := address + "/device/instance"
 		deployUrl := address + fmt.Sprintf("/device/instance/%s/deploy", deviceId)
 
@@ -66,7 +67,7 @@ func MockGatewayDevice(count int, token string, address string) {
 func TestMockChildDevice(t *testing.T) {
 
 	// mock child product
-	MockProduct(10, address, token)
+	MockProduct(1, address, token)
 
 	// mock device,
 	// 子设备通过connect报文自动创建设备和物模型
