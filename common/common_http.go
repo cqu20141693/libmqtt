@@ -33,7 +33,7 @@ func DoRequest(method string, url string, body string, token string) bool {
 	Client.Timeout = 300 * time.Second
 	resp, err := Client.Do(req)
 	if resp.StatusCode != 200 || err != nil {
-		_ = fmt.Errorf("do request failed:code=%d url=%s", resp.StatusCode, url)
+		fmt.Println(fmt.Sprintf("do request failed:code=%d url=%s", resp.StatusCode, url))
 	}
 	return false
 }

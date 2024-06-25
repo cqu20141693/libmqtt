@@ -13,9 +13,10 @@ import (
 //	@param t
 
 func TestMockGateway(t *testing.T) {
-	gatewayProductId = "sprint58"
+	//gatewayProductId = "v4"
+	UseTestConfig()
 	// 网关产品可以直接创建，还需要区分数采能力
-	MockGatewayDevice(12, token, address)
+	MockGatewayDevice(10, token, address)
 }
 
 // MockGatewayDevice
@@ -28,7 +29,7 @@ func MockGatewayDevice(count int, token string, address string) {
 
 	for i := 0; i < count; i++ {
 
-		deviceId := fmt.Sprintf(gatewayPrefix, i)
+		deviceId := fmt.Sprintf(gatewayIdFormat, i)
 		createUrl := address + "/device/instance"
 		deployUrl := address + fmt.Sprintf("/device/instance/%s/deploy", deviceId)
 
@@ -47,12 +48,12 @@ func MockGatewayDevice(count int, token string, address string) {
 
 		method := "POST"
 
-		done := common.DoRequest(method, createUrl, temp, token)
-		if done {
+		failed := common.DoRequest(method, createUrl, temp, token)
+		if failed {
 			return
 		}
-		done = common.DoRequest(method, deployUrl, "{}", token)
-		if done {
+		failed = common.DoRequest(method, deployUrl, "{}", token)
+		if failed {
 			return
 		}
 
@@ -66,6 +67,7 @@ func MockGatewayDevice(count int, token string, address string) {
 //	@param t
 func TestMockChildDevice(t *testing.T) {
 
+	UseTestConfig()
 	// mock child product
 	MockProduct(1, address, token)
 

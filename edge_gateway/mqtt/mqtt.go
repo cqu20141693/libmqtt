@@ -13,6 +13,7 @@ func init() {
 	// 初始化消息处理
 	utils.AddHandler(utils.WelcomeTopic, welcomeHandler)
 	utils.AddHandler(utils.CmdTopic, cmdHandler)
+
 }
 func CreatClient(info *domain.MqttClientAddInfo) (libmqtt.Client, error) {
 	options := make([]libmqtt.Option, 0)

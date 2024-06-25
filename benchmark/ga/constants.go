@@ -12,10 +12,14 @@ const (
 	LocalToken       = "tt"
 	LocalAddress     = "http://localhost:8840"
 
-	TestServer  = "localhost:1883"
-	TestToken   = "Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIyMjMzMjA2MTY5NTgwMTM0NDAiLCJ1c2VyX2lkIjoiMjIzMzIwNjE2OTU4MDEzNDQwIiwiYXpwIjoiZW1iZWQtaWFtIiwidW5pcXVlX2tleSI6IjVmYzlkNzQxLWQzNTgtNDY0Yy04NzEwLWMwNTMwNWQ1NDA5OSIsImFjY2Vzc19qdGkiOiI0NjdkNjUyNi0wZjE4LTRkNGItOWJmZC0yYjIyMzE0YThiMTUiLCJuYW1lIjoiSUlPVOa1i-ivlS1ORVciLCJpc3MiOiJodHRwOi8vZ3VjMy1hcGktdGVzdC5nZWVnYS5jb20vYXBpL2lhbS8xIiwidHlwIjoiQmVhcmVyIiwicmVhbG0iOiIxIiwibG9naW5fc291cmNlIjoibW9iaWxlLXBhc3N3b3JkIiwianRpIjoiNDY3ZDY1MjYtMGYxOC00ZDRiLTliZmQtMmIyMjMxNGE4YjE1IiwiaWF0IjoxNzA5NjIzMTY2LCJleHAiOjE3MDk4ODIzNjZ9.ao9Ntq0wM-MKARp39MxRfLn3qhm2OaNNFyuaizfabcgU9bxhsj_IUus7q_5FrvETmMIrd-HgweH-dI9w1FZ4vg"
-	TestAddress = "https://iiot-3-test.ge" +
-		"ega.com/api/iot-service"
+	TestServer  = "10.168.141.202:30009"
+	TestToken   = "Bearer eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwidXNlcl9pZCI6IjEiLCJhenAiOiJlbWJlZC1pYW0iLCJ1bmlxdWVfa2V5IjoiOTMzMTdlZDYtZWVkYi00MGJjLTlmNDItZjM4NTUzYTg2MjQ5IiwiYWNjZXNzX2p0aSI6ImE4M2Q1MDc0LTljZGYtNGJkZC1iMjIyLTZmN2FjYmI4ZTNmZSIsIm5hbWUiOiLotoXnuqfnrqHnkIblkZgiLCJpc3MiOiJodHRwOi8vZ3VjMy1hcGktbW9tLmNhYXMtY2xvdWQtdGVzdC5nZWVnYS5jb20vYXBpL2lhbS8xIiwidHlwIjoiQmVhcmVyIiwicmVhbG0iOiIxIiwibG9naW5fc291cmNlIjoidXNlcm5hbWUtcGFzc3dvcmQiLCJqdGkiOiJhODNkNTA3NC05Y2RmLTRiZGQtYjIyMi02ZjdhY2JiOGUzZmUiLCJpYXQiOjE3MTY3OTUxOTMsImV4cCI6MTcxNjc5Njk5M30.CQyelhbd9iTR9vX6XQ2QINR0soCYC5FCG0FoPCsuI8wnTq7Nm94MGK2CLMgDLCTv-yAyRzhZ04NEneQl0_ouuA"
+	TestAddress = "http://iiot-2.caas-cloud-test.gee" +
+		"ga.com/api/iot-service"
+
+	EdgeServer  = "172.28.89.214:21883"
+	EdgeToken   = "mock guc"
+	EdgeAddress = "http://172.28.89.214:18840"
 )
 
 // 默认值
@@ -26,7 +30,8 @@ var (
 	//gateway product ID
 	gatewayProductId   = "witeamP"
 	directDeviceFormat = "direct%d"
-	gatewayPrefix      = "benchmark"
+	gatewayPrefix      = "benchmark_g"
+	gatewayIdFormat    = "benchmark_g%d"
 
 	address         = LocalAddress
 	token           = LocalToken
@@ -43,6 +48,12 @@ var (
 func UseTestConfig() {
 	fmt.Println("use test config")
 	common.Server = TestServer
+	address = TestAddress
+	token = TestToken
+}
+func UseCass4Config() {
+	fmt.Println("use cass 4 config")
+	common.Server = "10.168.141.202:30024"
 	address = TestAddress
 	token = TestToken
 }

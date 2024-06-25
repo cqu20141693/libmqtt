@@ -25,7 +25,7 @@ import (
 
 func ConnHandler(client mqtt.Client, server string, code byte, err error) {
 	if err != nil {
-		fmt.Printf("\nconnect to server:%v error:%v\n", server, err)
+		fmt.Printf("\nconnect to server:%v clientId=%v error:%v\n", server, client.ClientId(), err)
 	} else if code != mqtt.CodeSuccess {
 		fmt.Printf("\nconnection rejected by server：%v, code:%v\n", server, code)
 	} else {
@@ -86,6 +86,7 @@ func InvalidQos() {
 const (
 	WelcomeTopic = "sys/welcome"
 	CmdTopic     = "sys/cmd/*"
+	Attributes   = "v1/devices/me/attributes"
 )
 
 var handlerMap = make(map[*regexp.Regexp]mqtt.TopicHandleFunc, 8)

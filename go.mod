@@ -18,12 +18,15 @@ require (
 	github.com/samber/lo v1.39.0
 	github.com/simonvetter/modbus v1.6.0
 	github.com/spf13/viper v1.15.0
+	// rabbitmq
+	github.com/streadway/amqp v1.1.0
 	github.com/stretchr/testify v1.9.0
 	github.com/tjfoc/gmsm v1.4.1
 	go.uber.org/goleak v1.3.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/sync v0.7.0
 	nhooyr.io/websocket v1.8.6
+
 )
 
 require (

@@ -1,9 +1,11 @@
 package ga
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/bytedance/sonic"
 	lib "github.com/goiiot/libmqtt"
+	mqtt_util "github.com/goiiot/libmqtt/cmd/utils"
 	"github.com/goiiot/libmqtt/common"
 	"github.com/goiiot/libmqtt/edge_gateway/utils"
 	"github.com/google/uuid"
@@ -14,14 +16,42 @@ import (
 	"time"
 )
 
+func TestCommand(t *testing.T) {
+	// 使用测试环境配置
+	UseCass4Config()
+	mqtt_util.AddHandler(mqtt_util.Attributes, attributeHandler)
+	common.MqttConnect(1, func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
+		return common.Server, fmt.Sprintf("%s%d", "witeamG", index+1), "witeam", "witeam@123", common.Keepalive, lib.V311, time.Second * 10
+	})
+
+	time.Sleep(time.Second * 1000)
+}
+
+func attributeHandler(client lib.Client, topic string, qos lib.QosLevel, msg []byte) {
+	data := make(map[string]interface{})
+	reply := make(map[string]interface{})
+	_ = json.Unmarshal(msg, &data)
+	msgId := data["messageId"]
+	reply["messageId"] = msgId
+	reply["success"] = true
+	reply["timestamp"] = utils.GetTimestamp()
+	bytes, _ := json.Marshal(reply)
+	// 2.x topic 回复
+	client.Publish(&lib.PublishPacket{
+		TopicName: "properties/write/reply",
+		Qos:       lib.Qos1,
+		Payload:   bytes,
+	})
+}
+
 // BenchmarkGaPlatformGatewayConnect 压测平台连接
 //
 //	@param b
 func BenchmarkGaPlatformGatewayConnect(b *testing.B) {
 	// 使用测试环境配置
-	//UseTestConfig()
+	UseTestConfig()
 
-	b.N = 12
+	b.N = 10
 	common.MqttConnect(b.N, func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
 		return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), common.Username, common.Password, common.Keepalive, lib.V311, time.Second * 10
 	})
@@ -34,18 +64,53 @@ func BenchmarkGaPlatformGatewayConnect(b *testing.B) {
 //
 //	@param b
 func BenchmarkGaPlatformConnectChild(b *testing.B) {
-	b.N = 12
+	UseTestConfig()
+	testConnectChildCount = 20
+	timeseriesCount = 50
+	b.N = 10
 	common.MqttPublish(b.N,
 		func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
 			return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), directUsername, directPassword, common.Keepalive, lib.V311, time.Second * 10
 		},
 		func(clientId string) (common.TelemetryFunc, string, int, lib.QosLevel, time.Duration) {
 			duration := time.Millisecond * 3000
-			return mockGatewayDeviceTSLPkt, "v1/gateway/connect", 1, lib.QosLevel(1), duration
+			return mockGatewayDeviceTSLPkt, // 报文生成器
+				"v1/gateway/connect", //topic
+				1, // 发送次数
+				lib.QosLevel(1), //qos
+				duration // 发送延迟
 		})
 	log.Println("MqttPublish success")
 	time.Sleep(time.Second * 30)
 
+}
+
+// BenchmarkEdgeRuleService
+// 压测edge rule 服务 2000 点位
+//
+//	@param b
+func BenchmarkEdgeRuleService(b *testing.B) {
+	common.Server = EdgeServer
+	address = EdgeAddress
+	token = EdgeToken
+	testConnectChildCount = 40
+	timeseriesCount = 50
+	b.N = 1
+	pushCount := 1800
+	// 每秒10条
+	duration := time.Millisecond * 100
+
+	common.MqttPublish(b.N,
+		func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
+			return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), common.Username, common.Password,
+				common.Keepalive, lib.V311, time.Second * 3
+		},
+		func(clientId string) (common.TelemetryFunc, string, int, lib.QosLevel, time.Duration) {
+
+			return mockGatewayTelemetryPkt, telemetryTopic, pushCount, lib.QosLevel(1), duration
+		})
+	log.Println("MqttPublish success")
+	time.Sleep(time.Second * 3)
 }
 
 // BenchmarkGaPlatformPublish
@@ -53,14 +118,20 @@ func BenchmarkGaPlatformConnectChild(b *testing.B) {
 //
 //	@param b
 func BenchmarkGaPlatformPublish(b *testing.B) {
-	b.N = 12
+	UseTestConfig()
+	testConnectChildCount = 20
+	timeseriesCount = 5
+	b.N = 10
+	pushCount := 1000
+	duration := time.Millisecond * 1000
+
 	common.MqttPublish(b.N,
 		func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
 			return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), directUsername, directPassword, common.Keepalive, lib.V311, time.Second * 10
 		},
 		func(clientId string) (common.TelemetryFunc, string, int, lib.QosLevel, time.Duration) {
-			duration := time.Millisecond * 3000
-			return mockGatewayTelemetryPkt, telemetryTopic, 1, lib.QosLevel(1), duration
+
+			return mockGatewayTelemetryPkt, telemetryTopic, pushCount, lib.QosLevel(1), duration
 		})
 	log.Println("MqttPublish success")
 	time.Sleep(time.Second * 3)
@@ -73,7 +144,7 @@ func BenchmarkGaPlatformGatewayPublish(b *testing.B) {
 			return common.Server, fmt.Sprintf("%s%d", gatewayPrefix, index), directUsername, directPassword, common.Keepalive, lib.V311, time.Second * 10
 		},
 		func(clientId string) (common.TelemetryFunc, string, int, lib.QosLevel, time.Duration) {
-			duration := time.Millisecond * 3000
+			duration := time.Millisecond * 1000
 			return mockGatewayMeTelemetryPkt, telemetryMeTopic, 1, lib.QosLevel(1), duration
 		})
 	log.Println("MqttPublish success")
@@ -184,7 +255,7 @@ func mockInt(min int, max int) int {
 //	@return []map[string]interface{}
 func mockGatewayTelemetryPkt(gatewayId string) []map[string]interface{} {
 	index := gatewayId[len(gatewayPrefix):]
-	childPrefix := "benchmarkC_" + index + "_"
+	childPrefix := "benchmarkCC_" + index + "_"
 	ret := make([]map[string]interface{}, 0, 1)
 	pkt := mockTelemetryPkt(childPrefix)
 	ret = append(ret, pkt)
@@ -204,7 +275,7 @@ func TestMockGatewayTelemetryPkt(t *testing.T) {
 func mockGatewayDeviceTSLPkt(deviceId string) []map[string]interface{} {
 	index := deviceId[len(gatewayPrefix):]
 	productId := productIdPrefix + "0"
-	childPrefix := "benchmarkC_" + index + "_"
+	childPrefix := "benchmarkCC_" + index + "_"
 
 	//timeseriesCount = 10
 
