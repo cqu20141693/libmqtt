@@ -22,6 +22,9 @@ func CreatClient(info *domain.MqttClientAddInfo) (libmqtt.Client, error) {
 	options = append(options, libmqtt.WithIdentity(info.Username, info.Password))
 	options = append(options, libmqtt.WithKeepalive(uint16(info.Keepalive), 1.2))
 	options = append(options, libmqtt.WithVersion(libmqtt.V311, false))
+	// 支持日志等级
+	options = append(options, libmqtt.WithLog(info.LogLevel))
+
 	client, err := NewClient(options, info.Address)
 	return client, err
 }
@@ -30,6 +33,7 @@ func NewClient(options []libmqtt.Option, server string) (client libmqtt.Client, 
 
 	allOpts := append([]libmqtt.Option{
 		// 处理up message 异常情况
+		libmqtt.WithLog(libmqtt.Info),
 		libmqtt.WithPubHandleFunc(PubHandler),
 		libmqtt.WithReceiveHandleFunc(ReceiveHandler),
 		libmqtt.WithConnHandleFunc(ConnHandler),
@@ -61,7 +65,7 @@ func NewClient(options []libmqtt.Option, server string) (client libmqtt.Client, 
 }
 
 func cmdHandler(client libmqtt.Client, topic string, qos libmqtt.QosLevel, msg []byte) {
-
+	cclog.Info("receive cmd msg client=%s topic=%s qos=%d msg=%v", client.ClientId(), topic, qos, string(msg))
 }
 
 var welcomeHandler = func(client libmqtt.Client, topic string, qos libmqtt.QosLevel, msg []byte) {

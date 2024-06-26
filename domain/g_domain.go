@@ -16,6 +16,7 @@ type MqttClientAddInfo struct {
 	MockPolicy      []PublishMockPolicy `form:"mockPolicy" json:"mockPolicy" xml:"mockPolicy"`
 	ProtocolVersion byte
 	client          mqtt.Client
+	LogLevel        mqtt.LogLevel
 }
 
 func (m *MqttClientAddInfo) PrintClientMetric() {
@@ -28,9 +29,12 @@ func (m *MqttClientAddInfo) PrintClientMetric() {
 func (m *MqttClientAddInfo) SetClient(client mqtt.Client) {
 	m.client = client
 }
+func NewMqttClientAddInfoWithLog(address string, clientID string, username string, password string, keepalive int64, version byte, level mqtt.LogLevel) *MqttClientAddInfo {
+	return &MqttClientAddInfo{Address: address, ClientID: clientID, Username: username, Password: password, Keepalive: keepalive, ProtocolVersion: version, LogLevel: level}
+}
 
 func NewMqttClientAddInfoWithVersion(address string, clientID string, username string, password string, keepalive int64, version byte) *MqttClientAddInfo {
-	return &MqttClientAddInfo{Address: address, ClientID: clientID, Username: username, Password: password, Keepalive: keepalive, ProtocolVersion: version}
+	return NewMqttClientAddInfoWithLog(address, clientID, username, password, keepalive, version, mqtt.Info)
 }
 
 func NewMqttClientAddInfo(address string, clientID string, username string, password string, keepalive int64) *MqttClientAddInfo {
