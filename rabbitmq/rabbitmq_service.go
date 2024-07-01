@@ -129,7 +129,7 @@ func (mq *MessageQueue) Consume(fn Consumer) {
 
 	// 监听消息
 	msgs, err := mq.ch.Consume(
-		q.Name, // queue name,
+		q.Name, // collection name,
 		"",     // consumer
 		false,  // auto-ack
 		false,  // exclusive
@@ -196,7 +196,7 @@ func (mq *MessageQueue) bindQueue(queue, routekey, exchange string) {
 		false,
 		nil,
 	)
-	failOnError(err, "Failed to bind a queue")
+	failOnError(err, "Failed to bind a collection")
 }
 
 // failOnError 错误处理

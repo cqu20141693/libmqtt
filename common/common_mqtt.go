@@ -48,6 +48,9 @@ func initMetric() {
 //	@param deviceFormat 设备格式：eg "direct%d"
 //	@param protoVersion
 func MqttConnect(count int, connInfoFunc ConnectInfoFunc) {
+	MqttConnectWithLog(count, connInfoFunc, libmqtt.Silent)
+}
+func MqttConnectWithLog(count int, connInfoFunc ConnectInfoFunc, level libmqtt.LogLevel) {
 	infos := make([]*domain.MqttClientAddInfo, 0, count)
 	ret := struct {
 		success atomic.Int32
@@ -55,7 +58,7 @@ func MqttConnect(count int, connInfoFunc ConnectInfoFunc) {
 	}{}
 	for i := 0; i < count; i++ {
 		server, clientId, username, password, keepalive, protoVersion, duration := connInfoFunc(i)
-		info := domain.NewMqttClientAddInfoWithVersion(server, clientId, username, password, keepalive, byte(protoVersion))
+		info := domain.NewMqttClientAddInfoWithLog(server, clientId, username, password, keepalive, byte(protoVersion), level)
 		infos = append(infos, info)
 		go func(addInfo *domain.MqttClientAddInfo) {
 
@@ -106,6 +109,10 @@ type TelemetryFunc func(deviceId string) []map[string]interface{}
 //	@param connInfoFunc 连接信息
 //	@param pubInfoFunc 推送信息
 func MqttPublish(count int, connInfoFunc ConnectInfoFunc, pubInfoFunc PublishInfoFunc) {
+	MqttPublishWithLog(count, connInfoFunc, pubInfoFunc, libmqtt.Silent)
+}
+
+func MqttPublishWithLog(count int, connInfoFunc ConnectInfoFunc, pubInfoFunc PublishInfoFunc, level libmqtt.LogLevel) {
 
 	infos := make([]*domain.MqttClientAddInfo, 0, count)
 	group := sync.WaitGroup{}
@@ -117,7 +124,7 @@ func MqttPublish(count int, connInfoFunc ConnectInfoFunc, pubInfoFunc PublishInf
 		server, clientId, username, password, keepalive, protoVersion, duration := connInfoFunc(i)
 		telemetryFunc, topic, pubCount, qosLevel, frequency := pubInfoFunc(clientId)
 		initMetric()
-		info := domain.NewMqttClientAddInfoWithVersion(server, clientId, username, password, keepalive, byte(protoVersion))
+		info := domain.NewMqttClientAddInfoWithLog(server, clientId, username, password, keepalive, byte(protoVersion), level)
 		infos = append(infos, info)
 		go func(addInfo *domain.MqttClientAddInfo) {
 

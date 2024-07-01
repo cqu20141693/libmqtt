@@ -39,9 +39,10 @@ type clientConn struct {
 	keepaliveC   chan struct{}     // keepalive packet
 	parentExit   uint32
 
-	ctx     context.Context    // context for single connection
-	exit    context.CancelFunc // terminate this connection if necessary
-	stopSig <-chan struct{}
+	ctx         context.Context    // context for single connection
+	exit        context.CancelFunc // terminate this connection if necessary
+	stopSig     <-chan struct{}    // 停止信号
+	connSuccess atomic.Bool        // 连接成功信号
 }
 
 func (c *clientConn) parentExiting() bool {
@@ -68,7 +69,9 @@ func (c *clientConn) logic() {
 	}
 
 	for {
+		// 连接成功：ack 收到恢复，收到了welcome 消息
 		select {
+		//core:pkt 处理mqtt其他报文
 		case pkt, more := <-c.netRecvC:
 			if !more {
 				return
@@ -253,6 +256,11 @@ func (c *clientConn) handleSend() {
 	}()
 
 	for {
+		if !c.connSuccess.Load() {
+			time.Sleep(time.Millisecond)
+			continue
+		}
+		// 连接成功：收到ack ,or welcome 消息
 		select {
 		case <-c.stopSig:
 			return
@@ -264,16 +272,21 @@ func (c *clientConn) handleSend() {
 				notifyNetMsg(c.parent.msgCh, c.name, err)
 				return
 			}
+			//core:send
 		case pkt, more := <-c.parent.sendCh:
 			if !more {
 				return
 			}
 
 			pkt.SetVersion(c.protoVersion)
+
 			if err := pkt.WriteTo(c.connRW); err != nil {
+				// 放入队列
+				c.parent.CacheQueue.Push(pkt)
 				c.parent.log.e("NET encode error", err)
 				return
 			}
+
 			flushSig.Reset(flushDelayInterval)
 
 			switch p := pkt.(type) {
@@ -293,6 +306,7 @@ func (c *clientConn) handleSend() {
 				c.exit()
 				return
 			}
+			//core:send mqtt协议层ack
 		case pkt, more := <-c.logicSendC:
 			if !more {
 				return
@@ -341,6 +355,7 @@ func (c *clientConn) handleNetRecv() {
 	}()
 
 	for {
+		//core:conn block 读取消息，可以监听网络异常和报文异常
 		pkt, err := Decode(c.protoVersion, c.connRW)
 		if err != nil {
 			c.parent.log.e("NET connection broken, server =", c.name, "err =", err)
@@ -353,6 +368,7 @@ func (c *clientConn) handleNetRecv() {
 
 		if pkt.Version() != c.protoVersion {
 			// protocol version not match, exit
+			c.parent.log.v("protocol version not match, exit for server =", c.name)
 			c.exit()
 			return
 		}
@@ -365,6 +381,7 @@ func (c *clientConn) handleNetRecv() {
 			}
 		} else {
 			select {
+			// 消息分发到下游到goroutine 处理
 			case c.netRecvC <- pkt:
 			case <-c.stopSig:
 			}
@@ -395,4 +412,19 @@ func (c *clientConn) sendRaw(pkt Packet) error {
 	}
 
 	return nil
+}
+
+func (c *clientConn) recoverData() {
+	queue := c.parent.CacheQueue
+
+	for {
+		select {
+		case pkt := <-queue.C:
+			{
+				packet := pkt.(Packet)
+				c.parent.sendCh <- packet
+			}
+
+		}
+	}
 }

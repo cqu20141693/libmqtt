@@ -54,7 +54,8 @@ func sendKey(packetID uint16) string {
 }
 
 type idGenerator struct {
-	nextID  uint32
+	nextID uint32
+	//core:pktId->pkt : 用于匹配发送到报文判断完成通知
 	usedIDs map[uint16]interface{}
 	mu      *sync.RWMutex
 }

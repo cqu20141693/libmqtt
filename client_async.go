@@ -19,6 +19,7 @@ package libmqtt
 import (
 	"context"
 	"crypto/tls"
+	"github.com/gogf/gf/v2/container/gqueue"
 	"github.com/rcrowley/go-metrics"
 	"strings"
 	"sync"
@@ -52,7 +53,7 @@ type AsyncClient struct {
 	secureServers []string
 
 	options          connectOptions      // client wide connection options
-	msgCh            chan *message       // error channel
+	msgCh            chan *message       // error channel ： msgType
 	sendCh           chan Packet         // pub channel for sending publish packet to server
 	recvCh           chan *PublishPacket // recv channel for server pub receiving
 	idGen            *idGenerator        // Packet id generator
@@ -70,11 +71,12 @@ type AsyncClient struct {
 	netHandler     NetHandleFunc
 	persistHandler PersistHandleFunc
 
-	ctx       context.Context    // closure of this channel will signal all client worker to stop
-	exit      context.CancelFunc // called when client exit
-	stopSig   <-chan struct{}
-	PubMetric metrics.Counter
-	RecMetric metrics.Counter
+	ctx        context.Context    // closure of this channel will signal all client worker to stop
+	exit       context.CancelFunc // called when client exit
+	stopSig    <-chan struct{}
+	CacheQueue *gqueue.Queue
+	PubMetric  metrics.Counter
+	RecMetric  metrics.Counter
 }
 
 func (c *AsyncClient) ClientId() string {
@@ -105,7 +107,12 @@ func defaultClient() *AsyncClient {
 
 		options: defaultConnectOptions(),
 		msgCh:   make(chan *message, 10),
-		sendCh:  make(chan Packet, 1),
+		// chan 是阻塞的：可考虑先通过一个队列存储上行数据
+		// 不会阻塞上报消息，同时启动一个写成了消费队列数据到sendCh
+		// 队列设置一个长度N，当发现队列的长度为N时，将消息存储
+		// 否则直接丢到队列中
+		sendCh: make(chan Packet, 1),
+		// 通道是阻塞的
 		recvCh:  make(chan *PublishPacket, 1),
 		router:  NewTextRouter(),
 		idGen:   newIDGenerator(),
@@ -114,11 +121,12 @@ func defaultClient() *AsyncClient {
 		connectedServers: new(sync.Map),
 		workers:          new(sync.WaitGroup),
 
-		ctx:       ctx,
-		exit:      exitFunc,
-		stopSig:   ctx.Done(),
-		PubMetric: metrics.NewCounter(),
-		RecMetric: metrics.NewCounter(),
+		ctx:        ctx,
+		exit:       exitFunc,
+		stopSig:    ctx.Done(),
+		CacheQueue: gqueue.New(100000),
+		PubMetric:  metrics.NewCounter(),
+		RecMetric:  metrics.NewCounter(),
 	}
 }
 

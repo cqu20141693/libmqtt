@@ -1,4 +1,4 @@
-package examples
+package collection
 
 import (
 	"fmt"
@@ -37,7 +37,7 @@ func ExampleValues() {
 	// Output: [1 2]
 }
 
-func testFilter() {
+func TestFilter(t *testing.T) {
 	strs := lo.Filter[string]([]string{"hello", "good bye", "world", "fuck", "fuck who"}, func(s string, _ int) bool {
 		return !strings.Contains(s, "fuck")
 	})

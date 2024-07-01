@@ -34,6 +34,7 @@ func NewClient(options []libmqtt.Option, server string) (client libmqtt.Client, 
 	allOpts := append([]libmqtt.Option{
 		// 处理up message 异常情况
 		libmqtt.WithLog(libmqtt.Info),
+		//
 		libmqtt.WithPubHandleFunc(PubHandler),
 		libmqtt.WithReceiveHandleFunc(ReceiveHandler),
 		libmqtt.WithConnHandleFunc(ConnHandler),

@@ -2,6 +2,7 @@ package common
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/bytedance/sonic"
 	"io"
@@ -13,13 +14,36 @@ var Client = &http.Client{
 	Timeout: 15 * time.Second,
 }
 
-// DoRequest http 请求
+func DoRequestWithTimeout(method string, url string, body string, token string, ctx context.Context) bool {
+	req, err := http.NewRequest(method, url, bytes.NewReader([]byte(body)))
+	if err != nil {
+		return false
+	}
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept-Language", "zh-CN")
+
+	req.Header.Set("Authorization", token)
+	Client.Timeout = 300 * time.Second
+	resp, err := Client.Do(req.WithContext(ctx))
+	if err != nil {
+		fmt.Println(fmt.Sprintf("do request failed:err=%v", err))
+		return false
+	} else if resp.StatusCode != 200 {
+		all, _ := io.ReadAll(resp.Body)
+		fmt.Println(fmt.Sprintf("do request failed:code=%d reson=%s url=%s", resp.StatusCode, string(all), url))
+		return false
+	}
+	return true
+}
+
+// DoRequest api 请求
 //
 //	@param method
 //	@param url
 //	@param body
 //	@param token
-//	@return bool 请求成功失败
+//	@return bool false请求成功失败,ture 失败
 func DoRequest(method string, url string, body string, token string) bool {
 	req, err := http.NewRequest(method, url, bytes.NewReader([]byte(body)))
 	if err != nil {
@@ -38,7 +62,7 @@ func DoRequest(method string, url string, body string, token string) bool {
 	return false
 }
 
-// DoRequestWithResp http 请求需要结果
+// DoRequestWithResp api 请求需要结果
 //
 //	@param method
 //	@param url

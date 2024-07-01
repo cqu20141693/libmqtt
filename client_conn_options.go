@@ -149,7 +149,7 @@ func (c connectOptions) connect(
 		connImpl.ctx, connImpl.exit = context.WithCancel(parent.ctx)
 		connImpl.stopSig = connImpl.ctx.Done()
 
-		// 设置网络处理
+		// 设置网络处理,解析报文发送到netRecvC chan
 		parent.addWorker(connImpl.handleNetRecv)
 
 		connPkt := c.connPacket.clone()
@@ -163,7 +163,7 @@ func (c connectOptions) connect(
 		}
 
 		select {
-		// 连接后 读取报文
+		//core:pkt 处理ConnAck报文
 		case pkt, more := <-connImpl.netRecvC:
 			if !more {
 				if c.connHandler != nil {
@@ -195,6 +195,10 @@ func (c connectOptions) connect(
 						goto reconnect
 					}
 					return
+				} else {
+					// 1. 可以进行消息发送
+					// 2. 将混存队列中的消息发送出去
+					connImpl.connSuccess.Store(true)
 				}
 			default:
 				close(connImpl.logicSendC)
@@ -220,6 +224,7 @@ func (c connectOptions) connect(
 			parent.addWorker(func() { c.connHandler(parent, server, CodeSuccess, nil) })
 		}
 
+		parent.addWorker(connImpl.recoverData)
 		parent.addWorker(connImpl.handleSend)
 
 		// start mqtt logic
