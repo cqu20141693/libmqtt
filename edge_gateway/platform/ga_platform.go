@@ -103,8 +103,8 @@ func getConnectInfo(device connectors.Device) []interface{} {
 			attrs = append(attrs, tagInfo)
 		}
 	}
-	//info[constants.ATTRIBUTES] = attrs
-	//info[constants.TIMESERIES] = telemetries
+	info[constants.ATTRIBUTES] = attrs
+	info[constants.TIMESERIES] = telemetries
 	infos = append(infos, info)
 
 	return infos

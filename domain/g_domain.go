@@ -58,8 +58,8 @@ type GClientInfo struct {
 	Username   string
 	Password   string
 	Keepalive  int64
-	Scheduler  gocron.Scheduler
-	Client     mqtt.Client
+	Scheduler  gocron.Scheduler `json:"-"`
+	Client     mqtt.Client      `json:"-"`
 	EnableMock bool
 	Connected  bool
 	MockPolicy []PublishMockPolicy `form:"mockPolicy" json:"mockPolicy" xml:"mockPolicy"`

@@ -3,9 +3,10 @@ package http
 import (
 	"github.com/go-resty/resty/v2"
 	"github.com/goiiot/libmqtt/cmd/json"
+	"github.com/goiiot/libmqtt/common/model"
 )
 
-func GetMirrorMqttInfo(args []string) (info *json.MqttInfo, e error) {
+func GetMirrorMqttInfo(args []string) (info *model.MqttInfo, e error) {
 	client := resty.New()
 	r := client.R()
 	if len(args) == 3 {
@@ -25,7 +26,7 @@ func GetMirrorMqttInfo(args []string) (info *json.MqttInfo, e error) {
 	return &authResult.Data, nil
 
 }
-func GetSubMqttInfo(url string, devices []string) (info *json.MqttInfo, e error) {
+func GetSubMqttInfo(url string, devices []string) (info *model.MqttInfo, e error) {
 	// Create a Resty Client
 	client := resty.New()
 	post, err := client.R().

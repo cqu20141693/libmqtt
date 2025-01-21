@@ -14,7 +14,7 @@ import (
 
 func TestMockGateway(t *testing.T) {
 	//gatewayProductId = "v4"
-	UseTestConfig()
+	UseCass2Config()
 	// 网关产品可以直接创建，还需要区分数采能力
 	MockGatewayDevice(10, token, address)
 }
@@ -67,7 +67,7 @@ func MockGatewayDevice(count int, token string, address string) {
 //	@param t
 func TestMockChildDevice(t *testing.T) {
 
-	UseTestConfig()
+	UseCass2Config()
 	// mock child product
 	MockProduct(1, address, token)
 

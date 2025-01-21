@@ -1,4 +1,4 @@
-package json
+package model
 
 type MqttInfo struct {
 	ClientIdentifier string `json:clientIdentifier`

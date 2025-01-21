@@ -21,4 +21,5 @@ func TestMapBasic(t *testing.T) {
 	m := map[string]Person{}
 	person := m["witeam"]
 	fmt.Println(person)
+	delete(m, "witeam")
 }

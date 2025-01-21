@@ -44,16 +44,26 @@ var (
 	directPassword = common.Password
 )
 
-// UseTestConfig 使用测试环境配置
-func UseTestConfig() {
+// UseCass2Config 使用测试环境配置
+func UseCass2Config() {
 	fmt.Println("use test config")
 	common.Server = TestServer
 	address = TestAddress
 	token = TestToken
 }
+
+func UseCass3Config() {
+	fmt.Println("use cass 3 config")
+	common.Server = "10.168.141.229:33183"
+	address = "http://iiot-3.caas-cloud-test.gee" +
+		"ga.com/api/iot-service"
+	token = TestToken
+}
+
 func UseCass4Config() {
 	fmt.Println("use cass 4 config")
 	common.Server = "10.168.141.202:30024"
-	address = TestAddress
+	address = "http://iiot-4.caas-cloud-test.gee" +
+		"ga.com/api/iot-service"
 	token = TestToken
 }

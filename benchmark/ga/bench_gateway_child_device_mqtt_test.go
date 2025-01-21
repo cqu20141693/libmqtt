@@ -10,7 +10,6 @@ import (
 	"github.com/goiiot/libmqtt/edge_gateway/utils"
 	"github.com/google/uuid"
 	"log"
-	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -18,7 +17,8 @@ import (
 
 func TestCommand(t *testing.T) {
 	// 使用测试环境配置
-	UseCass4Config()
+	//UseCass4Config()
+	UseCass2Config()
 	mqtt_util.AddHandler(mqtt_util.Attributes, attributeHandler)
 	common.MqttConnect(1, func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
 		return common.Server, fmt.Sprintf("%s%d", "witeamG", index+1), "witeam", "witeam@123", common.Keepalive, lib.V311, time.Second * 10
@@ -49,7 +49,7 @@ func attributeHandler(client lib.Client, topic string, qos lib.QosLevel, msg []b
 //	@param b
 func BenchmarkGaPlatformGatewayConnect(b *testing.B) {
 	// 使用测试环境配置
-	UseTestConfig()
+	UseCass3Config()
 
 	b.N = 10
 	common.MqttConnect(b.N, func(index int) (string, string, string, string, int64, lib.ProtoVersion, time.Duration) {
@@ -64,7 +64,7 @@ func BenchmarkGaPlatformGatewayConnect(b *testing.B) {
 //
 //	@param b
 func BenchmarkGaPlatformConnectChild(b *testing.B) {
-	UseTestConfig()
+	UseCass2Config()
 	testConnectChildCount = 20
 	timeseriesCount = 50
 	b.N = 10
@@ -93,10 +93,10 @@ func BenchmarkEdgeRuleService(b *testing.B) {
 	common.Server = EdgeServer
 	address = EdgeAddress
 	token = EdgeToken
-	testConnectChildCount = 40
+	testConnectChildCount = 20
 	timeseriesCount = 50
 	b.N = 1
-	pushCount := 1800
+	pushCount := 18000
 	// 每秒10条
 	duration := time.Millisecond * 100
 
@@ -118,7 +118,7 @@ func BenchmarkEdgeRuleService(b *testing.B) {
 //
 //	@param b
 func BenchmarkGaPlatformPublish(b *testing.B) {
-	UseTestConfig()
+	UseCass2Config()
 	testConnectChildCount = 20
 	timeseriesCount = 5
 	b.N = 10
@@ -137,6 +137,7 @@ func BenchmarkGaPlatformPublish(b *testing.B) {
 	time.Sleep(time.Second * 3)
 
 }
+
 func BenchmarkGaPlatformGatewayPublish(b *testing.B) {
 	b.N = 12
 	common.MqttPublish(b.N,
@@ -185,7 +186,7 @@ func mockTimeseries(propsCount int) []map[string]interface{} {
 
 func randomDataType() string {
 
-	switch mockInt(0, 10) {
+	switch common.MockInt(0, 10) {
 	case 0:
 		return "Integer"
 	case 1:
@@ -234,19 +235,9 @@ func mockValues() map[string]interface{} {
 	for i := 0; i < timeseriesCount; i++ {
 		key := "a" + strconv.Itoa(i)
 		//values[key] = random.RandInt(10, 10000)
-		values[key] = mockInt(10, 10000)
+		values[key] = common.MockInt(10, 10000)
 	}
 	return values
-}
-
-// mockInt
-// 模拟整数
-//
-//	@param min
-//	@param max
-//	@return int
-func mockInt(min int, max int) int {
-	return min + (rand.Int() % (max - min))
 }
 
 // mockGatewayTelemetryPkt 模拟网关子设备遥测数据
@@ -304,7 +295,7 @@ func mockGatewayMeTelemetryPkt(gatewayId string) []map[string]interface{} {
 	mockNum := 100
 	for i := 0; i < mockNum; i++ {
 		key := fmt.Sprintf("a%d", i)
-		values[key] = mockInt(0, 9999)
+		values[key] = common.MockInt(0, 9999)
 	}
 	ret = append(ret, values)
 	return ret

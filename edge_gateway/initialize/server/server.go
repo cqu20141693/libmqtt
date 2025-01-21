@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/goiiot/libmqtt/edge_gateway/initialize/logger/cclog"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,8 +12,15 @@ import (
 	"time"
 )
 
-var DefaultAddr = ":28883"
+var DefaultAddr = getPort("EXPOSE_PORT")
 
+func getPort(varName string) string {
+	port := os.Getenv(varName)
+	if port == "" {
+		port = ":9883"
+	}
+	return port
+}
 func StartServer(router *gin.Engine) {
 	server := &http.Server{
 		Addr:    DefaultAddr,
@@ -54,6 +62,7 @@ func StartWithContextNotify(router *gin.Engine) {
 
 	defer mainStop()
 
+	log.Println("start port:", DefaultAddr)
 	srv := &http.Server{
 		Addr:    DefaultAddr,
 		Handler: router,

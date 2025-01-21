@@ -1,0 +1,8 @@
+#!/bin/bash
+
+time=$(date "+%Y-%m-%d %H:%M:%S")
+echo "\n start:${time}"
+file='/data/nginx/libmqtt.json'
+targetUrl=' https://iiot-3-test.geega.com/api/iot-service/file/static'
+token='eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIyMjMzMjA2MTY5NTgwMTM0NDAiLCJ1c2VyX2lkIjoiMjIzMzIwNjE2OTU4MDEzNDQwIiwiYXpwIjoiZW1iZWQtaWFtIiwidW5pcXVlX2tleSI6IjQ2MTYyZTM1LWFkYTYtNDQ2Zi1hMDQ0LTNhZjNhNDBhOTBmYSIsImFjY2Vzc19qdGkiOiI2NDhkYTA3ZC1mMTA4LTRhYzktYTI3My0zZjg3NjAwNTI4NTkiLCJuYW1lIjoiSUlPVOa1i-ivlS1ORVciLCJpc3MiOiJodHRwOi8vZ3VjMy1hcGktdGVzdC5nZWVnYS5jb20vYXBpL2lhbS8xIiwidHlwIjoiQmVhcmVyIiwicmVhbG0iOiIxIiwibG9naW5fc291cmNlIjoibW9iaWxlLXBhc3N3b3JkIiwianRpIjoiNjQ4ZGEwN2QtZjEwOC00YWM5LWEyNzMtM2Y4NzYwMDUyODU5IiwiaWF0IjoxNzE5ODA1MzAzLCJleHAiOjE3MjAwNjQ1MDN9.ZdmLM1_tT2TKObvDbQkH1YGGgL6MRgrfsGwvumgKPGgMkYMXNWUzWZZ2gtCSPoWBHgTnKsRITNdSpSwHaR7flw'
+/data/nginx/test_app $file $targetUrl $token

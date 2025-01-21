@@ -24,8 +24,8 @@ import (
 	"flag"
 	"fmt"
 	mqtt "github.com/goiiot/libmqtt"
-	"github.com/goiiot/libmqtt/cmd/crypto"
 	"github.com/goiiot/libmqtt/cmd/http"
+	crypto2 "github.com/goiiot/libmqtt/common/crypto"
 	"github.com/goiiot/libmqtt/domain"
 	"os"
 	"os/signal"
@@ -86,7 +86,7 @@ func execCmd(params []string) {
 			fmt.Println(`m-conn,m-c server getMirrorInfoAPI keepalive  - Mirror login`)
 		}
 	case "s-conn":
-		signature := crypto.DoSignature(params[4])
+		signature := crypto2.DoSignature(params[4])
 		if signature == "" {
 			fmt.Println(`s-conn signature failed  - signature login`)
 			break
@@ -157,7 +157,7 @@ func execCmd(params []string) {
 					fmt.Println("base64 decode failed")
 					break
 				}
-				decrypt, err := crypto.DoSM4Decrypt(cipherText, []byte(args[1]), []byte(args[1]))
+				decrypt, err := crypto2.DoSM4Decrypt(cipherText, []byte(args[1]), []byte(args[1]))
 				if err != nil {
 					fmt.Println("Do SM4 Decrypt failed")
 					break
@@ -176,7 +176,7 @@ func execCmd(params []string) {
 					fmt.Println("data encode type error")
 					return
 				}
-				sm4, err := crypto.DoSM4(bytes, []byte(args[1]), []byte(args[1]))
+				sm4, err := crypto2.DoSM4(bytes, []byte(args[1]), []byte(args[1]))
 				if err != nil {
 					fmt.Println("Do SM4 Crypt failed")
 					return
@@ -190,7 +190,7 @@ func execCmd(params []string) {
 		if len(args) == 3 {
 			switch args[0] {
 			case domain.SM4:
-				sm4, err := crypto.DoSM4([]byte(args[2]), []byte(args[1]), []byte(args[1]))
+				sm4, err := crypto2.DoSM4([]byte(args[2]), []byte(args[1]), []byte(args[1]))
 				if err != nil {
 					fmt.Println("Do SM4 Crypt failed")
 					return
@@ -201,7 +201,7 @@ func execCmd(params []string) {
 	case "st", "signature-token":
 		//st SM3 token
 		if len(args) == 2 {
-			fmt.Printf("sm3 signature data=%s\n", crypto.DoSignature(strings.Join(args, ":")))
+			fmt.Printf("sm3 signature data=%s\n", crypto2.DoSignature(strings.Join(args, ":")))
 			ok = true
 		}
 
@@ -223,7 +223,7 @@ func getCipherData(client mqtt.Client, encodeType, data string) (r []byte, err e
 		switch info.Model {
 		case domain.SM4:
 			key := []byte(info.Welcome().CryptoSecret)
-			return crypto.DoSM4(bytes, key, key)
+			return crypto2.DoSM4(bytes, key, key)
 		case domain.AES:
 		}
 	}
