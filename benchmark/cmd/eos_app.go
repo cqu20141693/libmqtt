@@ -15,7 +15,7 @@ import (
 var Router = gin.Default()
 
 func main() {
-	api := Router.Group("/api/geega")
+	api := Router.Group("/api/ge"+"ega")
 	MockPushData(api)
 	CreateClientRoutes(api)
 	GetClients(api)
