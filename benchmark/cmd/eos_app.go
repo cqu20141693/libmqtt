@@ -62,6 +62,11 @@ func CreateClientRoutes(rg *gin.RouterGroup) {
 			c.JSON(http.StatusBadRequest, "请求参数错误")
 			return
 		}
+		gClientInfo := domain.ClientMaps[info.ClientID]
+		if gClientInfo != nil {
+			c.JSON(http.StatusOK, "already")
+			return
+		}
 		cclog.SugarLogger.Info(info)
 		client, err := mqtt.CreatClient(&info)
 		if err != nil {

@@ -8,7 +8,7 @@ gateway:
     keepAlive: 90
     maxSize: 65537
     minReconnectDelay: 1
-    port: 1883
+    port: 11883
     qos: 0
     username: witeam
     clientId: witeamG1

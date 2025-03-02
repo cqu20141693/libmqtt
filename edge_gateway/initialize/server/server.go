@@ -50,6 +50,13 @@ func StartServer(router *gin.Engine) {
 	cclog.Info("Server exiting")
 }
 
+var srv = &http.Server{}
+
+// RegisterOnShutdown 注册关闭函数
+func RegisterOnShutdown(f func()) {
+	srv.RegisterOnShutdown(f)
+}
+
 // 用ctx初始化资源，mysql，redis等,内部服务也可以通过mainCtx初始化
 var MainCtx, mainStop = signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
@@ -63,10 +70,8 @@ func StartWithContextNotify(router *gin.Engine) {
 	defer mainStop()
 
 	log.Println("start port:", DefaultAddr)
-	srv := &http.Server{
-		Addr:    DefaultAddr,
-		Handler: router,
-	}
+	srv.Addr = DefaultAddr
+	srv.Handler = router
 
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
